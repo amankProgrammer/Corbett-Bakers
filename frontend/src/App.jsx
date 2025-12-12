@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import './index.css'
 
 const API_URL = import.meta.env.VITE_API_URL
+
 const PAGES = { home: 'home', menu: 'menu', order: 'order', gallery: 'gallery', about: 'about', contact: 'contact', admin: 'admin' }
 // Build gallery from local images placed in public/images
 const GALLERY_IMAGES = Array.from({ length: 16 }, (_, i) => `/images/cake_${i+1}.jpg`)
