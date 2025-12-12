@@ -1,0 +1,46 @@
+const products = [
+  { id: 'cake1', name: 'Chocolate Truffle Cake', desc: 'Rich cocoa layers with ganache', price: 799, image: '/images/cake_1.jpg' , category: 'Cakes'},
+  { id: 'cake2', name: 'Red Velvet Cake', desc: 'Cream cheese frosting, classic favorite', price: 899, image: '/images/cake_2.jpg' , category: 'Cakes'},
+  { id: 'pastry1', name: 'Strawberry Pastry', desc: 'Light sponge, fresh berries', price: 129, image: '/images/cake_3.jpg' , category: 'Pastries'},
+  { id: 'cookie1', name: 'Choco Chip Cookies', desc: 'Crispy edges, gooey center', price: 99, image: '/images/cake_4.jpg' , category: 'Cookies'},
+  { id: 'bread1', name: 'Whole Wheat Bread', desc: 'Made fresh every morning', price: 89, image: '/images/cake_6.jpg' , category: 'Bread'},
+  { id: 'cupcake1', name: 'Vanilla Cupcake', desc: 'Buttercream swirl, sprinkles', price: 79, image: '/images/cake_5.jpg' , category: 'Cupcakes'},
+  // Birthday specials
+  { id: 'bday1', name: 'Birthday Theme Cake', desc: 'Custom design, eggless available', price: 1299, image: '/images/cake_11.jpg', category: 'Birthday' },
+  { id: 'bday2', name: 'Photo Print Cake', desc: 'Edible photo topper, premium finish', price: 1599, image: '/images/cake_13.jpg', category: 'Birthday' },
+  { id: 'bday3', name: 'Party Box Cupcakes (6)', desc: 'Assorted flavors • sprinkles & toppers', price: 499, image: '/images/cake_15.jpg', category: 'Birthday' },
+  // Birthday decor & supplies
+  { id: 'decor1', name: 'Balloon Pack (20)', desc: 'Colorful latex balloons', price: 199, image: 'https://images.weserv.nl/?url=loremflickr.com/600/600/balloons', category: 'Birthday Decor' },
+  { id: 'decor2', name: 'Ribbon Roll', desc: 'Glossy gift ribbons', price: 99, image: 'https://images.weserv.nl/?url=loremflickr.com/600/600/ribbons', category: 'Birthday Decor' },
+  { id: 'decor3', name: 'Candles Set (12)', desc: 'Assorted birthday candles', price: 89, image: 'https://images.weserv.nl/?url=loremflickr.com/600/600/birthday,candles', category: 'Birthday Decor' },
+  { id: 'decor4', name: 'Party Poppers (4)', desc: 'Confetti poppers for celebrations', price: 149, image: 'https://images.weserv.nl/?url=loremflickr.com/600/600/party,poppers', category: 'Birthday Decor' },
+  { id: 'decor5', name: 'Party Masks (6)', desc: 'Fun face masks for kids', price: 129, image: 'https://images.weserv.nl/?url=loremflickr.com/600/600/party,mask', category: 'Birthday Decor' },
+  { id: 'decor6', name: 'Birthday Crown', desc: 'Gold crown for the star', price: 99, image: 'https://images.weserv.nl/?url=loremflickr.com/600/600/crown', category: 'Birthday Decor' },
+  { id: 'decor7', name: 'Candies Jar', desc: 'Assorted sweets for party favors', price: 149, image: 'https://images.weserv.nl/?url=loremflickr.com/600/600/candies', category: 'Birthday Decor' },
+]
+
+// Fast Food Corner items with half/full pricing
+const fastFoodItems = [
+  { id:'ff1', name:'Steam Momos (Veg.)', category:'Momos', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/dumpling', prices:{ half:30, full:50 } },
+  { id:'ff2', name:'Steam Paneer or Mushroom Momos', category:'Momos', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/dumplings,vegetarian', prices:{ half:50, full:100 } },
+  { id:'ff3', name:'Fry Momos', category:'Momos', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/fried%20dumplings', prices:{ half:40, full:60 } },
+  { id:'ff4', name:'Tandoori Momos', category:'Momos', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/spicy%20dumplings', prices:{ half:50, full:80 } },
+  { id:'ff5', name:'Kurkure Momos (Veg.)', category:'Momos', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/crispy%20dumplings', prices:{ half:50, full:80 } },
+  { id:'ff6', name:'Kurkure Paneer or Mushroom Momos', category:'Momos', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/crispy%20dumplings,paneer', prices:{ half:70, full:140 } },
+  { id:'ff7', name:'Chilli Momos', category:'Momos', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/spicy%20dumplings', prices:{ half:60, full:110 } },
+  { id:'ff8', name:'Veg Chowmein', category:'Chowmein', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/noodles', prices:{ half:30, full:50 } },
+  { id:'ff9', name:'Hakka Noodles', category:'Chowmein', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/hakka,noodles', prices:{ half:50, full:80 } },
+  { id:'ff10', name:'Paneer Chowmein', category:'Chowmein', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/paneer,noodles', prices:{ half:50, full:80 } },
+  { id:'ff11', name:'Chilli Garlic Chowmein', category:'Chowmein', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/garlic,noodles', prices:{ half:50, full:80 } },
+  { id:'ff12', name:'Fried Rice', category:'Rice', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/fried%20rice', prices:{ half:30, full:50 } },
+  { id:'ff13', name:'Paneer Fried Rice', category:'Rice', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/paneer,rice', prices:{ half:50, full:80 } },
+  { id:'ff14', name:'Burger Aloo Tikki', category:'Burgers', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/veg%20burger', prices:{ full:40 } },
+  { id:'ff15', name:'Burger Paneer', category:'Burgers', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/paneer,burger', prices:{ full:80 } },
+  { id:'ff16', name:'Cheese Burger', category:'Burgers', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/cheese,burger', prices:{ full:60 } },
+  { id:'ff17', name:'Manchurian Veg. (Dry)', category:'Chinese', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/manchurian', prices:{ half:80, full:150 } },
+  { id:'ff18', name:'Manchurian Veg. (Gravy)', category:'Chinese', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/manchurian,gravy', prices:{ half:100, full:180 } },
+  { id:'ff19', name:'Chilli Paneer', category:'Chinese', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/chilli%20paneer', prices:{ half:80, full:150 } },
+  { id:'ff20', name:'Chilli Potato', category:'Chinese', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/chilli%20potato', prices:{ half:80, full:150 } },
+  { id:'ff21', name:'Spring Roll', category:'Snacks', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/spring%20roll', prices:{ full:50 } },
+  { id:'ff22', name:'Pasta', category:'Pasta', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/pasta', prices:{ half:50, full:90 } },
+]
