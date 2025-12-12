@@ -5,18 +5,7 @@
   "env": {
     "VITE_API_URL": "@vite_api_url"
   },
-  "functions": {
-    "server/**/*.js": {
-      "runtime": "nodejs20.x",
-      "memory": 1024,
-      "maxDuration": 60
-    }
-  },
   "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "server/server.js"
-    },
     {
       "src": "/(.*)",
       "dest": "/index.html"

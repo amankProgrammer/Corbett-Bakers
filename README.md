@@ -1,16 +1,206 @@
-# React + Vite
+# 🍰 Corbett Bakers - Full Stack Application
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A professional, production-ready web application for Corbett Bakers with a React frontend and Express.js backend.
 
-Currently, two official plugins are available:
+## 📁 Project Structure
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```
+corbett-bakers/
+├── frontend/                    # React + Vite (Deployed on Vercel)
+│   ├── src/                    # React components & pages
+│   ├── public/                 # Static assets
+│   ├── index.html              # Entry HTML
+│   ├── vite.config.js          # Vite configuration
+│   ├── vercel.json             # Vercel deployment config
+│   ├── .vercelignore           # Vercel ignore patterns
+│   └── package.json            # Frontend dependencies
+│
+├── backend/                     # Express.js API (Deployed on Render)
+│   ├── server.js               # Main server file
+│   ├── routes/                 # API routes
+│   │   ├── products.js         # Products endpoint
+│   │   └── fastfood.js         # Fastfood endpoint
+│   ├── db/                     # Database
+│   │   └── init.js             # Database initialization
+│   ├── render.yaml             # Render deployment config
+│   ├── .renderignore           # Render ignore patterns
+│   └── package.json            # Backend dependencies
+│
+├── docs/                        # Documentation
+│   ├── SPLIT_DEPLOYMENT_GUIDE.md
+│   ├── VERCEL_DEPLOYMENT.md
+│   └── More guides...
+│
+├── package.json                # Root monorepo config
+├── .gitignore                  # Git ignore rules
+└── README.md                   # This file
+```
 
-## React Compiler
+## 🚀 Deployment Architecture
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```
+┌─────────────────────────────────────────────────────┐
+│                 Your Users                          │
+└────────────┬──────────────────────────┬─────────────┘
+             │                          │
+             ▼                          ▼
+    ┌──────────────────┐      ┌──────────────────┐
+    │ Vercel (Frontend)│      │ Render (Backend) │
+    │ React + Vite     │◄────►│ Express.js       │
+    │ your-app         │ API  │ corbett-api      │
+    │ .vercel.app      │      │ .onrender.com    │
+    └──────────────────┘      └──────────────────┘
+         Frontend                   Backend
+```
 
-## Expanding the ESLint configuration
+## 🔧 Setup Instructions
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Prerequisites
+- Node.js 18+ installed
+- Git installed
+- GitHub account
+- Vercel & Render accounts (free)
+
+### Local Development
+
+**1. Install Dependencies**
+```bash
+npm install
+```
+
+**2. Run Frontend**
+```bash
+npm run frontend:dev
+```
+Opens at `http://localhost:5173`
+
+**3. Run Backend**
+```bash
+npm run backend:dev
+```
+Runs at `http://localhost:5000`
+
+**4. Run Both Together**
+```bash
+npm run dev
+```
+
+## 📦 Production Deployment
+
+### Step 1: Push to GitHub
+```bash
+git add .
+git commit -m "Ready for deployment"
+git push origin main
+```
+
+### Step 2: Deploy Frontend to Vercel
+
+1. Go to [vercel.com](https://vercel.com)
+2. Create new project
+3. Select your repository
+4. **Important:** Set root directory to `frontend`
+5. Add environment variable:
+   - Name: `VITE_API_URL`
+   - Value: (Get after deploying backend)
+6. Click Deploy
+
+**Get your URL:** e.g., `https://corbett-bakers.vercel.app`
+
+### Step 3: Deploy Backend to Render
+
+1. Go to [render.com](https://render.com)
+2. Create Web Service
+3. Select your repository
+4. **Important:** Set root directory to `backend`
+5. Configure:
+   - Build: `npm install`
+   - Start: `npm start`
+   - Plan: Free
+6. Click Create
+
+**Get your URL:** e.g., `https://corbett-bakers-api.onrender.com`
+
+### Step 4: Update Vercel Environment Variable
+
+1. Go back to Vercel → Settings → Environment Variables
+2. Update `VITE_API_URL`:
+   ```
+   https://corbett-bakers-api.onrender.com
+   ```
+3. Redeploy
+
+### Total Deployment Time: ~15 minutes ⏱️
+
+## ✅ Verification
+
+**Frontend:** Visit `https://your-app.vercel.app`
+- Page loads completely
+- Dark mode works
+- No console errors
+
+**Backend:** Visit `https://corbett-bakers-api.onrender.com/api/health`
+- Returns: `{"status":"ok","timestamp":"..."}`
+
+**Integration:** Check products load from API
+- Network tab shows `/api/products` call
+- No CORS errors
+
+## 📚 Quick Commands
+
+| Command | Purpose |
+|---------|---------|
+| `npm run frontend:dev` | Frontend development |
+| `npm run backend:dev` | Backend development |
+| `npm run dev` | Both together |
+| `npm run frontend:build` | Build frontend |
+| `git push origin main` | Auto-deploy to Vercel |
+
+## 🌐 Live URLs After Deployment
+
+```
+Frontend:  https://your-app.vercel.app
+Backend:   https://corbett-api.onrender.com
+API:       https://corbett-api.onrender.com/api
+Products:  https://corbett-api.onrender.com/api/products
+Health:    https://corbett-api.onrender.com/api/health
+```
+
+## 📖 Detailed Documentation
+
+See `/docs` folder for:
+- `SPLIT_DEPLOYMENT_GUIDE.md` - Complete deployment guide
+- `VERCEL_DEPLOYMENT.md` - Vercel specifics
+- And more deployment resources
+
+## 🎨 Features
+
+✅ React 19 + Vite  
+✅ Dark mode with neon effects  
+✅ Smooth animations  
+✅ Mobile responsive  
+✅ Express.js API  
+✅ SQLite database  
+✅ Admin authentication  
+✅ Auto-deploy on git push  
+
+## 🆘 Troubleshooting
+
+**API returns 404:** Ensure backend URL is correct in `VITE_API_URL`  
+**Frontend won't load:** Check Vercel logs and environment variables  
+**CORS errors:** Verify backend is running, no trailing slash in API URL  
+**Build fails:** Confirm root directory is set correctly in deployment platform  
+
+## 📊 Project Info
+
+- **Frontend:** React 19, Vite 7.2, 800+ CSS lines
+- **Backend:** Express.js, SQLite, Node.js 18+
+- **Deployment:** Vercel (Frontend) + Render (Backend)
+- **Status:** ✅ Production Ready
+- **Last Updated:** December 12, 2025
+
+---
+
+**Start deploying:** Read `/docs/SPLIT_DEPLOYMENT_GUIDE.md`
+
+
