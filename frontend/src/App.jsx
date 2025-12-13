@@ -14,7 +14,13 @@ const DEFAULT_CONFIG = {
   heroTitle: 'Baked with Love, Served Fresh',
   heroSubtitle: 'Warm, cozy, and inviting bakes for every sweet moment.',
   bannerTitle: 'Planning a Special Occasion?',
-  bannerText: 'From weddings to birthdays, we create custom cakes that taste as good as they look.'
+  bannerText: 'From weddings to birthdays, we create custom cakes that taste as good as they look.',
+  // Chef Defaults
+  chefTitle: 'The Red Velvet Supreme',
+  chefDesc: 'Our signature creation. Three layers of moist, cocoa-infused red sponge layered with our secret cream cheese frosting.',
+  chefPrice: 899,
+  chefTag: 'Today Spcl',
+  chefImage: ''
 };
 
 // --- DATA: CATEGORIES & SOCIAL ---
@@ -243,14 +249,19 @@ function Home({ navigate, onViewProduct, config }) {
            <div style={{ textAlign: 'center', marginBottom: '2rem' }}><div className="chip">Chef's Favorite</div></div>
            <div className="spotlight-wrapper">
               <div className="spotlight-image">
-                 <img src="/images/cake_2.jpg" alt="Spotlight" loading="lazy" onError={(e) => e.target.src = 'https://images.unsplash.com/photo-1586788680434-30d3244363c3?auto=format&fit=crop&w=1000&q=80'} />
-                 <div className="sticker" style={{ top: '20px', left: '20px' }}><div><small>Today</small>Spcl</div></div>
+                 <img 
+                    src={config.chefImage || "/images/cake_2.jpg"} 
+                    alt="Spotlight" 
+                    loading="lazy" 
+                    onError={(e) => e.target.src = 'https://images.unsplash.com/photo-1586788680434-30d3244363c3?auto=format&fit=crop&w=1000&q=80'} 
+                 />
+                 <div className="sticker" style={{ top: '20px', left: '20px' }}><div><small>{config.chefTag}</small></div></div>
               </div>
               <div className="spotlight-content">
-                 <h2 className="fancy-title" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>The Red Velvet Supreme</h2>
-                 <p className="muted" style={{ lineHeight: '1.8', marginBottom: '1.5rem', fontSize: '1.1rem' }}>Our signature creation. Three layers of moist, cocoa-infused red sponge layered with our secret cream cheese frosting.</p>
+                 <h2 className="fancy-title" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>{config.chefTitle}</h2>
+                 <p className="muted" style={{ lineHeight: '1.8', marginBottom: '1.5rem', fontSize: '1.1rem' }}>{config.chefDesc}</p>
                  <div className="flex gap-2 items-center">
-                    <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--brown-dark)' }}>₹899</span>
+                    <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--brown-dark)' }}>₹{config.chefPrice}</span>
                     <button className="btn" onClick={()=>navigate(PAGES.menu)}>Order This Now</button>
                  </div>
               </div>
@@ -428,6 +439,14 @@ function AdminDashboard({ config, onUpdateConfig }) {
       if(file.size > 2*1024*1024) { alert('File > 2MB'); return; }
       setForm({...form, image: await convertToBase64(file)});
   }
+  
+  // Specific handler for Settings Image (Chef Spotlight)
+  const handleSettingsUpload = async (e) => {
+      const file = e.target.files[0]; if(!file)return;
+      if(file.size > 2*1024*1024) { alert('File > 2MB'); return; }
+      setSettingsForm({...settingsForm, chefImage: await convertToBase64(file)});
+  }
+
   const saveItem = async () => {
       setLoading(true); const id = form.id || (tab==='products'?'p':'ff')+Date.now();
       const body = { ...form, id, price: Number(form.price), prices: form.prices };
@@ -461,11 +480,26 @@ function AdminDashboard({ config, onUpdateConfig }) {
                    <div><label>WhatsApp (No +)</label><input className="input" value={settingsForm.whatsapp} onChange={e=>setSettingsForm({...settingsForm, whatsapp:e.target.value})} /></div>
                </div>
                <div className="mt-2"><label>Address</label><input className="input" value={settingsForm.address} onChange={e=>setSettingsForm({...settingsForm, address:e.target.value})} /></div>
+               
                <h4 className="mt-4">Hero & Banner</h4>
                <div className="mt-2"><label>Hero Title</label><input className="input" value={settingsForm.heroTitle} onChange={e=>setSettingsForm({...settingsForm, heroTitle:e.target.value})} /></div>
                <div className="mt-2"><label>Hero Subtitle</label><textarea className="input" value={settingsForm.heroSubtitle} onChange={e=>setSettingsForm({...settingsForm, heroSubtitle:e.target.value})} /></div>
                <div className="mt-2"><label>Banner Title</label><input className="input" value={settingsForm.bannerTitle} onChange={e=>setSettingsForm({...settingsForm, bannerTitle:e.target.value})} /></div>
                <div className="mt-2"><label>Banner Text</label><input className="input" value={settingsForm.bannerText} onChange={e=>setSettingsForm({...settingsForm, bannerText:e.target.value})} /></div>
+
+               <h4 className="mt-4">Chef's Spotlight</h4>
+               <div className="form-row">
+                   <div><label>Title</label><input className="input" value={settingsForm.chefTitle} onChange={e=>setSettingsForm({...settingsForm, chefTitle:e.target.value})} /></div>
+                   <div><label>Price</label><input className="input" type="number" value={settingsForm.chefPrice} onChange={e=>setSettingsForm({...settingsForm, chefPrice:Number(e.target.value)})} /></div>
+               </div>
+               <div className="mt-2"><label>Tag (e.g. Today Spcl)</label><input className="input" value={settingsForm.chefTag} onChange={e=>setSettingsForm({...settingsForm, chefTag:e.target.value})} /></div>
+               <div className="mt-2"><label>Description</label><textarea className="input" value={settingsForm.chefDesc} onChange={e=>setSettingsForm({...settingsForm, chefDesc:e.target.value})} /></div>
+               <div className="mt-2">
+                   <label>Spotlight Image</label>
+                   <input type="file" className="input" onChange={handleSettingsUpload} />
+                   {settingsForm.chefImage && <img src={settingsForm.chefImage} style={{height:'80px', marginTop:'5px', objectFit:'contain'}} />}
+               </div>
+
                <button className="btn mt-4" onClick={saveSettings}>Save Changes</button>
            </div>
        ) : (
