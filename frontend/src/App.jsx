@@ -1,20 +1,35 @@
 import { useEffect, useMemo, useState } from 'react'
 import './index.css'
 
-// --- CONSTANTS & CONFIG ---
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000'
-// REMOVED: 'gallery' from PAGES
+// --- CONSTANTS ---
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000'
 const PAGES = { home: 'home', menu: 'menu', order: 'order', about: 'about', contact: 'contact', admin: 'admin' }
 
-// --- DATA: WHAT'S IN YOUR HEART CATEGORIES ---
+// --- DEFAULT CONFIG (Fallback) ---
+const DEFAULT_CONFIG = {
+  shopName: 'Corbett Bakers',
+  tagline: 'Homemade happiness',
+  whatsapp: '918433138312', // Default number if DB is empty
+  address: 'Bannakhera, Uttarakhand',
+  heroTitle: 'Baked with Love, Served Fresh',
+  heroSubtitle: 'Warm, cozy, and inviting bakes for every sweet moment.',
+  bannerTitle: 'Planning a Special Occasion?',
+  bannerText: 'From weddings to birthdays, we create custom cakes that taste as good as they look.'
+};
+
+// --- DATA: CATEGORIES & SOCIAL ---
 const HEART_CATEGORIES = [
   { id: 1, label: 'Birthday', image: 'https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?auto=format&fit=crop&w=300&q=80' },
   { id: 2, label: 'Anniversary', image: 'https://images.unsplash.com/photo-1535254973040-607b474cb50d?auto=format&fit=crop&w=300&q=80' },
   { id: 3, label: 'Choco Love', image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=300&q=80' },
   { id: 4, label: 'Fruit Cakes', image: './images/cake_4.jpg' },
   { id: 5, label: 'Cupcakes', image: 'https://images.pexels.com/photos/1179002/pexels-photo-1179002.jpeg' },
-  { id: 6, label: 'Party Props', image: 'https://images.pexels.com/photos/32370566/pexels-photo-32370566.jpeg' },
+  { id: 6, label: 'Party Props', image: 'https://images.pexels.com/photos/17637268/pexels-photo-17637268.jpeg' },
 ];
+
+const SOCIAL_ROW_1 = Array.from({ length: 6 }, (_, i) => ({ type: 'image', src: `/images/cake_${(i % 12) + 1}.jpg` }));
+const SOCIAL_ROW_2 = Array.from({ length: 6 }, (_, i) => ({ type: 'image', src: `/images/cake_${(i % 12) + 5}.jpg` }));
+const SOCIAL_ROW_3 = Array.from({ length: 6 }, (_, i) => ({ type: 'image', src: `/images/cake_${(i % 12) + 9}.jpg` }));
 
 // --- HELPERS ---
 const convertToBase64 = (file) => {
@@ -26,73 +41,38 @@ const convertToBase64 = (file) => {
   });
 };
 
-// Mock Social Data (using your gallery images)
-// We create 3 sets for 3 rows
-const SOCIAL_ROW_1 = Array.from({ length: 6 }, (_, i) => ({ type: 'image', src: `/images/cake_${(i % 12) + 1}.jpg` }));
-const SOCIAL_ROW_2 = Array.from({ length: 6 }, (_, i) => ({ type: 'image', src: `/images/cake_${(i % 12) + 5}.jpg` })); 
-const SOCIAL_ROW_3 = Array.from({ length: 6 }, (_, i) => ({ type: 'image', src: `/images/cake_${(i % 12) + 9}.jpg` }));
+async function fetchProductsFromAPI() { try { return await (await fetch(`${API_URL}/api/products`)).json() } catch { return [] } }
+async function fetchFastFoodFromAPI() { try { return await (await fetch(`${API_URL}/api/fastfood`)).json() } catch { return [] } }
 
-// --- COMPONENT: PRODUCT DETAILS MODAL ---
+// --- COMPONENTS ---
+
 function ProductDetailsModal({ product, onClose, onAdd }) {
   if (!product) return null;
-
   const hasHalf = product.prices && typeof product.prices.half === 'number';
   const hasFull = product.prices && typeof product.prices.full === 'number';
 
   return (
     <div className="drawer-backdrop" onClick={onClose} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000 }}>
-      <div 
-        className="card" 
-        style={{ width: '90%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', background: '#fff', position: 'relative', cursor: 'default' }}
-        onClick={e => e.stopPropagation()} 
-      >
-        <button 
-          onClick={onClose}
-          style={{ position: 'absolute', top: '15px', right: '20px', background: 'rgba(0,0,0,0.5)', color:'white', border: 'none', borderRadius:'50%', width:'40px', height:'40px', fontSize: '1.5rem', cursor: 'pointer', zIndex: 10, display:'flex', alignItems:'center', justifyContent:'center' }}
-        >
-          ×
-        </button>
-        
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0', padding: '0' }}>
-           <div style={{ width: '100%', height: '350px', backgroundColor: '#f9f9f9' }}>
-             <img 
-               src={product.image} 
-               alt={product.name} 
-               style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-               onError={(e) => e.target.src = 'https://placehold.co/800x600?text=No+Image'}
-             />
+      <div className="card modal-card" style={{ width: '90%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', background: '#fff', position: 'relative', cursor: 'default' }} onClick={e => e.stopPropagation()}>
+        <button onClick={onClose} style={{ position: 'absolute', top: '15px', right: '20px', background: 'rgba(0,0,0,0.5)', color:'white', border: 'none', borderRadius:'50%', width:'40px', height:'40px', fontSize: '1.5rem', cursor: 'pointer', zIndex: 10 }}>×</button>
+        <div style={{ display: 'flex', flexDirection: 'column' }}>
+           <div style={{ width: '100%', height: '350px', backgroundColor: '#f9f9f9', display:'flex', alignItems:'center', justifyContent:'center' }}>
+             <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'contain' }} onError={(e) => e.target.src = 'https://placehold.co/800x600?text=No+Image'} />
            </div>
-
            <div style={{ padding: '30px' }}>
              <div className="chip" style={{ marginBottom: '10px' }}>{product.category}</div>
              <h2 className="card-title" style={{ fontSize: '1.8rem', marginBottom: '10px' }}>{product.name}</h2>
-             
-             <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#D7A86E', marginBottom: '20px' }}>
+             <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: 'var(--brown-dark)', marginBottom: '20px' }}>
                 {product.price ? `₹ ${product.price}` : ''}
                 {hasHalf && `Half: ₹${product.prices.half}  `} 
                 {hasFull && ` • Full: ₹${product.prices.full}`}
              </div>
-
              <h4 style={{ marginBottom: '8px' }}>Description</h4>
-             <p style={{ lineHeight: '1.6', color: '#555', marginBottom: '30px' }}>
-               {product.description || product.desc || "No description available for this item."}
-             </p>
-
+             <p style={{ lineHeight: '1.6', color: 'var(--text)', marginBottom: '30px' }}>{product.description || product.desc || "No description available."}</p>
              <div className="card-actions">
-                {product.price && (
-                   <button className="btn" onClick={() => { onAdd(product); onClose(); }}>Add to Cart (₹ {product.price})</button>
-                )}
-                
-                {hasHalf && (
-                  <button className="btn outline" onClick={()=> { onAdd({ ...product, name: product.name + ' (Half)', price: product.prices.half }); onClose(); }}>
-                    Add Half (₹ {product.prices.half})
-                  </button>
-                )}
-                {hasFull && (
-                  <button className="btn" onClick={()=> { onAdd({ ...product, name: product.name + ' (Full)', price: product.prices.full }); onClose(); }}>
-                    Add Full (₹ {product.prices.full})
-                  </button>
-                )}
+                {product.price && <button className="btn" onClick={() => { onAdd(product); onClose(); }}>Add to Cart (₹ {product.price})</button>}
+                {hasHalf && <button className="btn outline" onClick={()=> { onAdd({ ...product, name: product.name + ' (Half)', price: product.prices.half }); onClose(); }}>Add Half (₹ {product.prices.half})</button>}
+                {hasFull && <button className="btn" onClick={()=> { onAdd({ ...product, name: product.name + ' (Full)', price: product.prices.full }); onClose(); }}>Add Full (₹ {product.prices.full})</button>}
              </div>
            </div>
         </div>
@@ -112,28 +92,22 @@ function useHashRoute(defaultPage = PAGES.home) {
   return { page, navigate }
 }
 
-function Header({ navigate, page, toggleDark, cartCount, onOpenCart }) {
+function Header({ navigate, page, toggleDark, cartCount, onOpenCart, config }) {
   return (
     <header className="header">
       <div className="container header-inner">
         <div className="brand" onClick={() => navigate(PAGES.home)} style={{ cursor: 'pointer' }}>
           <div className="brand-row">
-            <svg className="brand-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-              <path d="M4 14c0-3 4-4 8-4s8 1 8 4-4 6-8 6-8-3-8-6Z" fill="#D7A86E"/>
-              <path d="M12 4c2 0 3 1 3 2s-1 2-3 2-3-1-3-2 1-2 3-2Z" fill="#F18FB0"/>
-              <circle cx="16.5" cy="9.5" r="1.2" fill="#F7C7D8"/>
-              <circle cx="9" cy="9" r="1" fill="#F7C7D8"/>
-            </svg>
-            <div>Corbett Bakers <small>Homemade happiness</small></div>
+            <svg className="brand-icon" viewBox="0 0 24 24" fill="none"><path d="M4 14c0-3 4-4 8-4s8 1 8 4-4 6-8 6-8-3-8-6Z" fill="#D7A86E"/><path d="M12 4c2 0 3 1 3 2s-1 2-3 2-3-1-3-2 1-2 3-2Z" fill="#F18FB0"/><circle cx="16.5" cy="9.5" r="1.2" fill="#F7C7D8"/><circle cx="9" cy="9" r="1" fill="#F7C7D8"/></svg>
+            <div>{config.shopName}<small>{config.tagline}</small></div>
           </div>
         </div>
         <nav className="nav">
           <a href="#/home" onClick={(e)=>{e.preventDefault();navigate(PAGES.home)}} aria-current={page===PAGES.home}>Home</a>
           <a href="#/menu" onClick={(e)=>{e.preventDefault();navigate(PAGES.menu)}}>Menu</a>
           <a href="#/order" onClick={(e)=>{e.preventDefault();navigate(PAGES.order)}}>Order</a>
-          <a href="#/about" onClick={(e)=>{e.preventDefault();navigate(PAGES.about)}}>About</a>
           <a href="#/contact" onClick={(e)=>{e.preventDefault();navigate(PAGES.contact)}}>Contact</a>
-          <button className="btn outline" onClick={toggleDark} title="Toggle dark mode">Dark/Light</button>
+          <button className="btn outline" onClick={toggleDark} title="Toggle Theme">Theme</button>
           <button className="btn outline" onClick={onOpenCart} title="View cart">Cart ({cartCount})</button>
           <a className="btn" href="#/order" onClick={(e)=>{e.preventDefault();navigate(PAGES.order)}}>Order Now</a>
         </nav>
@@ -142,14 +116,14 @@ function Header({ navigate, page, toggleDark, cartCount, onOpenCart }) {
   )
 }
 
-function Footer() {
+function Footer({ config }) {
   return (
     <footer className="footer">
       <div className="container footer-inner">
         <div>
-          <h4>Corbett Bakers</h4>
-          <p className="small">Baked with Love, Served Fresh. Homemade happiness in every bite.</p>
-          <div className="small">📍 Bannakhera, Uttarakhand • ☎️ +91 99999 99999</div>
+          <h4>{config.shopName}</h4>
+          <p className="small">{config.heroSubtitle}</p>
+          <div className="small">📍 {config.address} • ☎️ {config.whatsapp}</div>
         </div>
         <div>
           <h4>Hours</h4>
@@ -166,61 +140,16 @@ function Footer() {
   )
 }
 
-// --- API HELPERS ---
-async function fetchProductsFromAPI() {
-  try { return await (await fetch(`${API_URL}/api/products`)).json() } catch { return [] }
-}
-async function fetchFastFoodFromAPI() {
-  try { return await (await fetch(`${API_URL}/api/fastfood`)).json() } catch { return [] }
-}
-
-// --- CARDS ---
-function FastFoodCard({ item, onView }) {
-  const hasHalf = item.prices && typeof item.prices.half === 'number'
-  return (
-    <div className="card product-card" onClick={() => onView(item)} style={{ cursor: 'pointer' }}>
-      <div className="card-image" style={{ height: '200px', width: '100%', overflow: 'hidden' }}>
-        <img 
-            src={item.image} 
-            alt={item.name} 
-            loading="lazy" 
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            onError={(e)=>e.target.src='https://placehold.co/600x400?text=No+Image'}
-        />
-      </div>
-      <div className="card-body">
-        <div className="chip">{item.category}</div>
-        <div className="card-title">{item.name}</div>
-        <div className="card-desc" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#888' }}>
-            Freshly made to order...
-        </div>
-        <div className="card-price" style={{ marginTop: 'auto' }}>
-            {hasHalf ? `From ₹ ${item.prices.half}` : `₹ ${item.prices.full}`}
-        </div>
-        <button className="btn outline mt-2" style={{ width: '100%' }}>View Options</button>
-      </div>
-    </div>
-  )
-}
-
 function ProductCard({ item, onView }) {
   return (
     <div className="card product-card" onClick={() => onView(item)} style={{ cursor: 'pointer' }}>
       <div className="card-image" style={{ height: '200px', width: '100%', overflow: 'hidden' }}>
-         <img 
-            src={item.image} 
-            alt={item.name} 
-            loading="lazy" 
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-            onError={(e)=>e.target.src='https://placehold.co/600x400?text=No+Image'}
-         />
+         <img src={item.image} alt={item.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e)=>e.target.src='https://placehold.co/600x400?text=No+Image'} />
       </div>
       <div className="card-body" style={{ display: 'flex', flexDirection: 'column' }}>
         <div className="chip">{item.category}</div>
         <div className="card-title">{item.name}</div>
-        <div className="card-desc" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '10px' }}>
-            {item.description || item.desc}
-        </div>
+        <div className="card-desc" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '10px' }}>{item.description || item.desc}</div>
         <div className="card-price" style={{ marginTop: 'auto' }}>₹ {item.price}</div>
         <button className="btn outline mt-2" style={{ width: '100%' }}>View Details</button>
       </div>
@@ -228,25 +157,35 @@ function ProductCard({ item, onView }) {
   )
 }
 
-// --- HOME PAGE (With New "What's In Your Heart" Section) ---
+function FastFoodCard({ item, onView }) {
+  const hasHalf = item.prices && typeof item.prices.half === 'number';
+  const hasFull = item.prices && typeof item.prices.full === 'number';
+  return (
+    <div className="card product-card" onClick={() => onView(item)} style={{ cursor: 'pointer' }}>
+      <div className="card-image" style={{ height: '200px', width: '100%', overflow: 'hidden' }}>
+        <img src={item.image} alt={item.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e)=>e.target.src='https://placehold.co/600x400?text=No+Image'} />
+      </div>
+      <div className="card-body">
+        <div className="chip">{item.category}</div>
+        <div className="card-title">{item.name}</div>
+        <div className="card-desc" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#888' }}>Freshly made to order...</div>
+        <div className="card-price" style={{ marginTop: 'auto' }}>{hasHalf ? `From ₹ ${item.prices.half}` : `₹ ${item.prices.full}`}</div>
+        <button className="btn outline mt-2" style={{ width: '100%' }}>View Options</button>
+      </div>
+    </div>
+  )
+}
 
-function Home({ navigate, onViewProduct }) {
+// --- HOME PAGE ---
+
+function Home({ navigate, onViewProduct, config }) {
   const [products, setProducts] = useState([])
   const [fastFood, setFastFood] = useState([])
   const [loading, setLoading] = useState(true)
-
-  const slides = useMemo(() => [
-    { src: '/images/shop.jpg', caption: 'Welcome to Corbett Bakers' },
-    { src: '/images/signature_cake.jpg', caption: 'Signature Choco Cake' },
-    { src: '/images/pastry.jpg', caption: 'Fresh Strawberry Pastries' },
-  ], [])
+  const slides = useMemo(() => [ { src: '/images/shop.jpg' }, { src: '/images/signature_cake.jpg' }, { src: '/images/pastry.jpg' } ], [])
   const [index, setIndex] = useState(0)
   
-  useEffect(() => { 
-    const t = setInterval(()=> setIndex((i)=> (i+1)%slides.length), 3500)
-    return ()=> clearInterval(t) 
-  }, [slides.length])
-
+  useEffect(() => { const t = setInterval(()=> setIndex((i)=> (i+1)%slides.length), 3500); return ()=> clearInterval(t) }, [slides.length])
   useEffect(() => {
     const loadData = async () => {
       setLoading(true)
@@ -258,12 +197,12 @@ function Home({ navigate, onViewProduct }) {
 
   return (
     <main>
-      {/* 1. HERO SECTION */}
+      {/* 1. HERO */}
       <section className="hero">
         <div className="container hero-inner">
           <div>
-            <h1>Baked with Love, Served Fresh</h1>
-            <p>Warm, cozy, and inviting bakes for every sweet moment. From cakes to cookies, we craft homemade happiness daily.</p>
+            <h1>{config.heroTitle}</h1>
+            <p>{config.heroSubtitle}</p>
             <div className="hero-actions">
               <button className="btn" onClick={()=>navigate(PAGES.order)}>Order Now</button>
               <button className="btn outline" onClick={()=>navigate(PAGES.menu)}>View Menu</button>
@@ -272,10 +211,9 @@ function Home({ navigate, onViewProduct }) {
           <div className="carousel" style={{ position: 'relative', overflow: 'hidden', width: '100%', height: '400px', borderRadius: '16px' }}>
               <div className="carousel-track" style={{ display: 'flex', height: '100%', transition: 'transform 0.5s ease-in-out', transform: `translateX(-${index*100}%)` }}>
                 {slides.map((s, i)=> (
-                  <div className="carousel-slide" key={i} style={{ minWidth: '100%', height: '100%', position: 'relative' }}>
+                  <div className="carousel-slide" key={i} style={{ minWidth: '100%', height: '100%' }}>
                     <div className="hero-card" style={{ width: '100%', height: '100%' }}>
-                      <img src={s.src} alt={s.caption} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} onError={(e)=>e.target.src='https://placehold.co/800x400?text=Corbett+Bakers'} />
-                      <div className="caption" style={{ position: 'absolute', bottom: '20px', left: '20px', background: 'rgba(255,255,255,0.9)', padding: '8px 16px', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 'bold' }}>{s.caption}</div>
+                      <img src={s.src} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e)=>e.target.src='https://placehold.co/800x400?text=Corbett+Bakers'} />
                     </div>
                   </div>
                 ))}
@@ -291,9 +229,7 @@ function Home({ navigate, onViewProduct }) {
            <div className="heart-grid">
               {HEART_CATEGORIES.map(cat => (
                 <div key={cat.id} className="heart-item" onClick={()=>navigate(PAGES.menu)}>
-                   <div className="heart-img-box">
-                      <img src={cat.image} alt={cat.label} loading="lazy" />
-                   </div>
+                   <div className="heart-img-box"><img src={cat.image} alt={cat.label} loading="lazy" /></div>
                    <div className="heart-label">{cat.label}</div>
                 </div>
               ))}
@@ -304,26 +240,15 @@ function Home({ navigate, onViewProduct }) {
       {/* 3. CHEF'S SPOTLIGHT */}
       <section className="section section-alt">
         <div className="container">
-           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
-              <div className="chip">Chef's Favorite</div>
-           </div>
+           <div style={{ textAlign: 'center', marginBottom: '2rem' }}><div className="chip">Chef's Favorite</div></div>
            <div className="spotlight-wrapper">
               <div className="spotlight-image">
-                 <img 
-                    src="/images/cake_2.jpg" 
-                    alt="Red Velvet Supreme" 
-                    loading="lazy" 
-                    onError={(e) => e.target.src = 'https://images.unsplash.com/photo-1586788680434-30d3244363c3?q=80&w=1000&auto=format&fit=crop'} 
-                 />
-                 <div className="sticker" style={{ top: '20px', left: '20px' }}>
-                    <div><small>Today</small>Spcl</div>
-                 </div>
+                 <img src="/images/cake_2.jpg" alt="Spotlight" loading="lazy" onError={(e) => e.target.src = 'https://images.unsplash.com/photo-1586788680434-30d3244363c3?auto=format&fit=crop&w=1000&q=80'} />
+                 <div className="sticker" style={{ top: '20px', left: '20px' }}><div><small>Today</small>Spcl</div></div>
               </div>
               <div className="spotlight-content">
                  <h2 className="fancy-title" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>The Red Velvet Supreme</h2>
-                 <p className="muted" style={{ lineHeight: '1.8', marginBottom: '1.5rem', fontSize: '1.1rem' }}>
-                    Our signature creation. Three layers of moist, cocoa-infused red sponge layered with our secret cream cheese frosting. Finished with white chocolate shavings and fresh berries.
-                 </p>
+                 <p className="muted" style={{ lineHeight: '1.8', marginBottom: '1.5rem', fontSize: '1.1rem' }}>Our signature creation. Three layers of moist, cocoa-infused red sponge layered with our secret cream cheese frosting.</p>
                  <div className="flex gap-2 items-center">
                     <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--brown-dark)' }}>₹899</span>
                     <button className="btn" onClick={()=>navigate(PAGES.menu)}>Order This Now</button>
@@ -344,14 +269,12 @@ function Home({ navigate, onViewProduct }) {
         </div>
       </section>
 
-      {/* 5. CUSTOM ORDER BANNER */}
+      {/* 5. CUSTOM BANNER */}
       <section className="section" style={{ background: '#222', color: '#fff', padding: '60px 0', textAlign: 'center' }}>
         <div className="container">
-           <h2 style={{ fontSize: '2rem', marginBottom: '15px', color: '#fff' }}>Planning a Special Occasion?</h2>
-           <p style={{ maxWidth: '600px', margin: '0 auto 25px auto', color: '#ccc' }}>
-              From weddings to birthdays, we create custom cakes that taste as good as they look. Let us make your day memorable.
-           </p>
-           <button className="btn" style={{ background: '#fff', color: '#333' }} onClick={()=>navigate(PAGES.contact)}>Request Custom Order</button>
+           <h2 style={{ fontSize: '2rem', marginBottom: '15px', color: '#fff' }}>{config.bannerTitle}</h2>
+           <p style={{ maxWidth: '600px', margin: '0 auto 25px auto', color: '#ccc' }}>{config.bannerText}</p>
+           <button className="btn" style={{ background: '#fff', color: '#333' }} onClick={()=>navigate(PAGES.contact)}>Contact Us</button>
         </div>
       </section>
 
@@ -376,71 +299,29 @@ function Home({ navigate, onViewProduct }) {
            <div className="testimonial-grid">
               <div className="testimonial-card">
                  <p className="testimonial-text">"The Red Velvet cake was the highlight of our party! Absolutely moist and delicious. Everyone asked where we got it from."</p>
-                 <div className="testimonial-author">
-                    <div className="author-avatar">R</div>
-                    <div className="author-info"><strong>Rahul Sharma</strong><span>Birthday Celebration</span></div>
-                 </div>
+                 <div className="testimonial-author"><div className="author-avatar">R</div><div className="author-info"><strong>Rahul Sharma</strong><span>Birthday Celebration</span></div></div>
               </div>
               <div className="testimonial-card">
                  <p className="testimonial-text">"Best momos in town. The chutney is spicy and authentic. I order from here almost every weekend. Highly recommended!"</p>
-                 <div className="testimonial-author">
-                    <div className="author-avatar">A</div>
-                    <div className="author-info"><strong>Anjali Kapoor</strong><span>Regular Customer</span></div>
-                 </div>
+                 <div className="testimonial-author"><div className="author-avatar">A</div><div className="author-info"><strong>Anjali Kapoor</strong><span>Regular Customer</span></div></div>
               </div>
               <div className="testimonial-card">
                  <p className="testimonial-text">"Ordered a custom photo cake for my son. It was perfect design-wise and tasted amazing. Thank you Corbett Bakers!"</p>
-                 <div className="testimonial-author">
-                    <div className="author-avatar">V</div>
-                    <div className="author-info"><strong>Vikram Singh</strong><span>Custom Order</span></div>
-                 </div>
+                 <div className="testimonial-author"><div className="author-avatar">V</div><div className="author-info"><strong>Vikram Singh</strong><span>Custom Order</span></div></div>
               </div>
            </div>
         </div>
       </section>
 
-      {/* 8. GLIMPSE FROM OUR SOCIAL WORLD (New Section) */}
+      {/* 8. SOCIAL WORLD */}
       <section className="social-section">
          <div className="container social-header">
             <h2 className="section-title" style={{ fontSize: '2.5rem' }}>A glimpse from our social world!</h2>
-            <p className="muted">Follow us @corbettbakers for daily cravings</p>
+            <p className="muted">Follow us @{config.shopName.replace(/\s+/g, '').toLowerCase()}</p>
          </div>
-
-         {/* Row 1: Left to Right (Slow) */}
-         <div className="social-track-wrapper">
-            <div className="social-track scroll-left slow">
-               {/* Doubling array for infinite loop */}
-               {[...SOCIAL_ROW_1, ...SOCIAL_ROW_1].map((item, i) => (
-                  <div key={i} className="glass-card">
-                     <img src={item.src} alt="Social" loading="lazy" onError={(e)=>e.target.src='https://placehold.co/200x300'} />
-                  </div>
-               ))}
-            </div>
-         </div>
-
-         {/* Row 2: Right to Left (Fast) */}
-         <div className="social-track-wrapper">
-            <div className="social-track scroll-right fast">
-               {[...SOCIAL_ROW_2, ...SOCIAL_ROW_2].map((item, i) => (
-                  <div key={i} className="glass-card">
-                     <img src={item.src} alt="Social" loading="lazy" onError={(e)=>e.target.src='https://placehold.co/200x300'} />
-                     {/* Fake Video Play Button */}
-                     {item.type === 'video' && <div className="play-icon"></div>}
-                  </div>
-               ))}
-            </div>
-         </div>
-
-         {/* Row 3: Left to Right (Normal) */}
-         <div className="social-track-wrapper">
-            <div className="social-track scroll-left">
-               {[...SOCIAL_ROW_3, ...SOCIAL_ROW_3].map((item, i) => (
-                  <div key={i} className="glass-card">
-                     <img src={item.src} alt="Social" loading="lazy" onError={(e)=>e.target.src='https://placehold.co/200x300'} />
-                  </div>
-               ))}
-            </div>
-         </div>
+         <div className="social-track-wrapper"><div className="social-track scroll-left slow">{[...SOCIAL_ROW_1, ...SOCIAL_ROW_1].map((item, i) => (<div key={i} className="glass-card"><img src={item.src} loading="lazy" /></div>))}</div></div>
+         <div className="social-track-wrapper"><div className="social-track scroll-right fast">{[...SOCIAL_ROW_2, ...SOCIAL_ROW_2].map((item, i) => (<div key={i} className="glass-card"><img src={item.src} loading="lazy" />{item.type==='video'&&<div className="play-icon"></div>}</div>))}</div></div>
+         <div className="social-track-wrapper"><div className="social-track scroll-left">{[...SOCIAL_ROW_3, ...SOCIAL_ROW_3].map((item, i) => (<div key={i} className="glass-card"><img src={item.src} loading="lazy" /></div>))}</div></div>
       </section>
     </main>
   )
@@ -453,396 +334,176 @@ function Menu({ onViewProduct, onAdd }) {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCategory, setFilterCategory] = useState('All')
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      const [p, f] = await Promise.all([fetchProductsFromAPI(), fetchFastFoodFromAPI()])
-      setProducts(p); setFastFood(f); setLoading(false)
-    }
-    load()
-  }, [])
-
+  useEffect(() => { const load = async () => { setLoading(true); const [p, f] = await Promise.all([fetchProductsFromAPI(), fetchFastFoodFromAPI()]); setProducts(p); setFastFood(f); setLoading(false) }; load() }, [])
   const allCategories = useMemo(() => ['All', ...new Set([...products.map(p=>p.category), ...fastFood.map(f=>f.category)])], [products, fastFood])
-  
   const filteredProducts = products.filter(p => (filterCategory==='All' || p.category===filterCategory) && p.name.toLowerCase().includes(searchTerm.toLowerCase()))
   const filteredFastFood = fastFood.filter(f => (filterCategory==='All' || f.category===filterCategory) && f.name.toLowerCase().includes(searchTerm.toLowerCase()))
 
   return (
-    <main className="section menu-page">
-      <div className="container">
+    <main className="section menu-page"><div className="container">
         <div className="menu-header"><div className="section-title fancy-title neon-title">Our Menu</div></div>
-        
         <div className="menu-filters mb-3 flex gap-2" style={{ alignItems: 'flex-end' }}>
-            <div style={{flex:1}}>
-                <label>Search</label>
-                <input className="input" placeholder="Search..." value={searchTerm} onChange={e=>setSearchTerm(e.target.value)} />
-            </div>
-            <div style={{flex:1}}>
-                <label>Category</label>
-                <select className="input" value={filterCategory} onChange={e=>setFilterCategory(e.target.value)}>
-                    {allCategories.map(c=><option key={c} value={c}>{c}</option>)}
-                </select>
-            </div>
+            <div style={{flex:1}}><label>Search</label><input className="input" placeholder="Search..." value={searchTerm} onChange={e=>setSearchTerm(e.target.value)} /></div>
+            <div style={{flex:1}}><label>Category</label><select className="input" value={filterCategory} onChange={e=>setFilterCategory(e.target.value)}>{allCategories.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
         </div>
-
         {loading && <div className="text-center">Loading menu...</div>}
-
-        {!loading && (
-          <div className="grid">
+        {!loading && <div className="grid">
             {filteredProducts.map(p => <ProductCard key={p.id} item={p} onView={onViewProduct} />)}
             {filteredFastFood.map(f => <FastFoodCard key={f.id} item={f} onView={onViewProduct} />)}
-            {filteredProducts.length === 0 && filteredFastFood.length === 0 && <div style={{gridColumn:'1/-1', textAlign:'center'}}>No items found.</div>}
-          </div>
-        )}
-      </div>
-    </main>
-  )
-}
-
-// --- ADMIN PAGES ---
-
-function AdminLogin({ onLogin }) {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
-
-  const submit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
-    try {
-      const response = await fetch(`${API_URL}/api/admin/login`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password })
-      })
-      if (!response.ok) throw new Error('Invalid credentials')
-      const data = await response.json()
-      sessionStorage.setItem('adminAuth', 'true')
-      sessionStorage.setItem('adminToken', data.token)
-      onLogin()
-    } catch (err) { setError('Invalid username or password') } finally { setLoading(false) }
-  }
-
-  return (
-    <main className="section"><div className="container" style={{ maxWidth: '480px' }}>
-        <div className="section-title">Admin Login</div>
-        {error && <div className="card mb-3"><div className="card-body" style={{ color: 'crimson' }}>{error}</div></div>}
-        <form onSubmit={submit}>
-          <input className="input mb-2" value={username} onChange={e => setUsername(e.target.value)} placeholder="admin" disabled={loading} />
-          <input className="input mb-2" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="admin@123" disabled={loading} />
-          <button className="btn" type="submit" disabled={loading}>{loading ? 'Logging in...' : 'Login'}</button>
-        </form>
+            {filteredProducts.length===0 && filteredFastFood.length===0 && <div style={{gridColumn:'1/-1', textAlign:'center'}}>No items found.</div>}
+        </div>}
     </div></main>
   )
 }
 
-function AdminDashboard() {
-  const [tab, setTab] = useState('products')
-  const [prodList, setProdList] = useState([])
-  const [ffList, setFfList] = useState([])
-  const [editing, setEditing] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [message, setMessage] = useState('')
-
-  const resetEditing = () => setEditing(null)
-  const [pForm, setPForm] = useState({ id: '', name: '', description: '', price: '', category: '', image: '' })
-  const [fForm, setFForm] = useState({ id: '', name: '', category: '', image: '', half: '', full: '' })
-
-  useEffect(() => { fetchProducts(); fetchFastFood(); }, [])
-
-  const fetchProducts = async () => {
-    try { setProdList(await (await fetch(`${API_URL}/api/products`)).json()) } catch (err) { setMessage('Error loading products') } finally { setLoading(false) }
-  }
-  const fetchFastFood = async () => {
-    try { setFfList(await (await fetch(`${API_URL}/api/fastfood`)).json()) } catch (err) { console.error(err) }
-  }
-
-  const startEditProduct = (p) => {
-    setTab('products'); setEditing(p.id);
-    setPForm({ id: p.id, name: p.name, description: p.description || '', price: String(p.price), category: p.category, image: p.image || '' })
-  }
-  const startEditFastFood = (f) => {
-    setTab('fastfood'); setEditing(f.id);
-    setFForm({ id: f.id, name: f.name, category: f.category, image: f.image || '', half: String(f.prices?.half || ''), full: String(f.prices?.full || '') })
-  }
-
-  const handleFileUpload = async (e, type) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) { alert("⚠️ File too large! Max 2MB."); e.target.value = null; return; }
-    try {
-      const base64 = await convertToBase64(file);
-      if (type === 'product') setPForm({ ...pForm, image: base64 });
-      else setFForm({ ...fForm, image: base64 });
-    } catch (err) { alert("Error processing image"); }
-  };
-
-  const saveProduct = async () => {
-    try {
-      setLoading(true); const id = editing || ('p' + Date.now());
-      const method = editing ? 'PUT' : 'POST';
-      const url = editing ? `${API_URL}/api/products/${id}` : `${API_URL}/api/products`;
-      await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...pForm, id, price: Number(pForm.price) }) });
-      await fetchProducts(); resetEditing(); setPForm({ id: '', name: '', description: '', price: '', category: '', image: '' });
-      setMessage('Saved successfully');
-    } catch (err) { setMessage('Error saving') } finally { setLoading(false) }
-  }
-
-  const saveFastFood = async () => {
-    try {
-      setLoading(true); const id = editing || ('ff' + Date.now());
-      const method = editing ? 'PUT' : 'POST';
-      const url = editing ? `${API_URL}/api/fastfood/${id}` : `${API_URL}/api/fastfood`;
-      await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...fForm, id, prices: { half: Number(fForm.half), full: Number(fForm.full) } }) });
-      await fetchFastFood(); resetEditing(); setFForm({ id: '', name: '', category: '', image: '', half: '', full: '' });
-      setMessage('Saved successfully');
-    } catch (err) { setMessage('Error saving') } finally { setLoading(false) }
-  }
-
-  const deleteItem = async (id, type) => {
-      if (!confirm('Delete?')) return;
-      setLoading(true);
-      await fetch(`${API_URL}/api/${type}/${id}`, { method: 'DELETE' });
-      if(type==='products') fetchProducts(); else fetchFastFood();
-      setLoading(false);
-  }
-
-  const logout = () => { sessionStorage.removeItem('adminAuth'); sessionStorage.removeItem('adminToken'); window.location.hash = `#/${PAGES.home}`; }
-
-  if (loading && prodList.length === 0 && ffList.length === 0) return <main className="section"><div className="container">Loading dashboard...</div></main>
-
-  return (
-    <main className="section"><div className="container">
-        <div className="section-title">Admin Dashboard</div>
-        {message && <div className="card mb-3"><div className="card-body">{message}</div></div>}
-        <div className="flex gap-2 mb-3">
-          <button className={`btn ${tab === 'products' ? '' : 'outline'}`} onClick={() => setTab('products')}>Products</button>
-          <button className={`btn ${tab === 'fastfood' ? '' : 'outline'}`} onClick={() => setTab('fastfood')}>Fast Food</button>
-          <button className="btn outline" onClick={logout}>Logout</button>
-        </div>
-
-        {tab === 'products' && (
-          <div className="grid">
-            <div className="card" style={{ gridColumn: '1/-1' }}>
-              <div className="card-body">
-                <h4>{editing ? 'Edit' : 'Add'} Product</h4>
-                <div className="form-row">
-                  <input className="input" placeholder="Name" value={pForm.name} onChange={e => setPForm({ ...pForm, name: e.target.value })} />
-                  <input className="input" placeholder="Category" value={pForm.category} onChange={e => setPForm({ ...pForm, category: e.target.value })} />
-                </div>
-                <div className="form-row mt-2">
-                  <input className="input" type="number" placeholder="Price" value={pForm.price} onChange={e => setPForm({ ...pForm, price: e.target.value })} />
-                  <div>
-                    <input type="file" accept="image/*" className="input" onChange={(e) => handleFileUpload(e, 'product')} />
-                    {pForm.image && <img src={pForm.image} alt="Preview" style={{ height: '50px', marginTop: '5px' }} />}
-                  </div>
-                </div>
-                <textarea className="input mt-2" placeholder="Description" value={pForm.description} onChange={e => setPForm({ ...pForm, description: e.target.value })} />
-                <div className="flex gap-2 mt-2">
-                  <button className="btn" onClick={saveProduct} disabled={loading}>Save</button>
-                  {editing && <button className="btn outline" onClick={resetEditing}>Cancel</button>}
-                </div>
-              </div>
-            </div>
-            {prodList.map(p => (
-              <div className="card" key={p.id}>
-                <div className="card-body">
-                  <div className="card-title">{p.name}</div>
-                  <div className="card-desc">₹ {p.price}</div>
-                  <div className="flex gap-2 mt-2">
-                    <button className="btn small" onClick={() => startEditProduct(p)}>Edit</button>
-                    <button className="btn small outline" onClick={() => deleteItem(p.id, 'products')}>Delete</button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {tab === 'fastfood' && (
-          <div className="grid">
-             <div className="card" style={{ gridColumn: '1/-1' }}>
-              <div className="card-body">
-                <h4>{editing ? 'Edit' : 'Add'} Fast Food</h4>
-                <div className="form-row">
-                  <input className="input" placeholder="Name" value={fForm.name} onChange={e => setFForm({ ...fForm, name: e.target.value })} />
-                  <input className="input" placeholder="Category" value={fForm.category} onChange={e => setFForm({ ...fForm, category: e.target.value })} />
-                </div>
-                <div className="form-row mt-2">
-                  <input className="input" type="number" placeholder="Half Price" value={fForm.half} onChange={e => setFForm({ ...fForm, half: e.target.value })} />
-                  <input className="input" type="number" placeholder="Full Price" value={fForm.full} onChange={e => setFForm({ ...fForm, full: e.target.value })} />
-                </div>
-                <div className="mt-2">
-                    <input type="file" accept="image/*" className="input" onChange={(e) => handleFileUpload(e, 'fastfood')} />
-                    {fForm.image && <img src={fForm.image} alt="Preview" style={{ height: '50px', marginTop: '5px' }} />}
-                </div>
-                <div className="flex gap-2 mt-2">
-                  <button className="btn" onClick={saveFastFood} disabled={loading}>Save</button>
-                  {editing && <button className="btn outline" onClick={resetEditing}>Cancel</button>}
-                </div>
-              </div>
-            </div>
-            {ffList.map(f => (
-              <div className="card" key={f.id}>
-                <div className="card-body">
-                  <div className="card-title">{f.name}</div>
-                  <div className="card-desc">{f.prices?.half ? `Half: ${f.prices.half}` : ''} {f.prices?.full ? `Full: ${f.prices.full}` : ''}</div>
-                  <div className="flex gap-2 mt-2">
-                    <button className="btn small" onClick={() => startEditFastFood(f)}>Edit</button>
-                    <button className="btn small outline" onClick={() => deleteItem(f.id, 'fastfood')}>Delete</button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-    </div></main>
-  )
-}
-
-function Admin() {
-  const [authed, setAuthed] = useState(sessionStorage.getItem('adminAuth') === 'true')
-  if (!authed) return <AdminLogin onLogin={() => setAuthed(true)} />
-  return <AdminDashboard />
-}
-
-function Order({ cart }) {
-  // CONFIG: Your Business Number
-  const OWNER_WHATSAPP_NUMBER = '918755953610'; 
-
+// --- ORDER PAGE (New Stylish Version) ---
+function Order({ cart, config }) {
   const [form, setForm] = useState({ name: '', contact: '', date: '', items: '', notes: '' })
-
   const cartTotal = cart.reduce((sum, item) => sum + item.price, 0);
   const isCartOrder = cart.length > 0;
 
   const onSubmit = (e) => {
     e.preventDefault()
-
-    let itemDetails = '';
-    let finalTotal = '';
-
-    if (isCartOrder) {
-        itemDetails = cart.map((i, index) => `${index + 1}. ${i.name} (₹${i.price})`).join('\n');
-        finalTotal = `*Total Amount:* ₹${cartTotal}`;
-    } else {
-        itemDetails = form.items || 'Custom Order';
-        finalTotal = 'Total to be confirmed.';
-    }
-
-    const message = `
-*🍰 New Order Request - Corbett Bakers*
---------------------------------
-*Name:* ${form.name}
-*Contact:* ${form.contact}
-*Date Required:* ${form.date}
-
-*Order Details:*
-${itemDetails}
-
-${finalTotal}
-
-*Notes:* ${form.notes ? form.notes : 'None'}
---------------------------------
-Please confirm this order.
-    `.trim();
-
-    const url = `https://wa.me/${OWNER_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-    window.open(url, '_blank');
+    let itemDetails = isCartOrder ? cart.map((i, idx) => `${idx+1}. ${i.name} (₹${i.price})`).join('\n') : (form.items || 'Custom Order');
+    let finalTotal = isCartOrder ? `*Total:* ₹${cartTotal}` : 'Total to be confirmed.';
+    const message = `*🍰 Order Request - ${config.shopName}*\n\n*Name:* ${form.name}\n*Contact:* ${form.contact}\n*Date:* ${form.date}\n\n*Items:*\n${itemDetails}\n\n${finalTotal}\n\n*Notes:* ${form.notes||'None'}`;
+    window.open(`https://wa.me/${config.whatsapp}?text=${encodeURIComponent(message)}`, '_blank');
   }
 
   return (
-    <main className="section">
-      <div className="container">
-        <div className="section-title text-center" style={{ marginBottom: '2rem' }}>Finalize Your Order</div>
-        
+    <main className="section"><div className="container">
+        <div className="section-title text-center" style={{marginBottom:'2rem'}}>Finalize Your Order</div>
         <div className="order-card">
-            
-            {/* 1. STYLISH RECEIPT SUMMARY */}
             {isCartOrder && (
                 <div className="order-summary">
-                    <div className="order-summary-header">
-                        <h4>Your Cart Receipt</h4>
-                        <span style={{ fontSize: '0.9rem', color: '#888' }}>{new Date().toLocaleDateString()}</span>
-                    </div>
-                    <ul className="order-list">
-                        {cart.map((item, i) => (
-                            <li key={i}>
-                                <span>{item.name}</span>
-                                <strong>₹{item.price}</strong>
-                            </li>
-                        ))}
-                    </ul>
-                    <div className="order-divider">
-                        <span className="total-label">Grand Total</span>
-                        <span className="total-highlight">₹{cartTotal}</span>
-                    </div>
+                    <div className="order-summary-header"><h4>Receipt</h4><span>{new Date().toLocaleDateString()}</span></div>
+                    <ul className="order-list">{cart.map((item, i) => <li key={i}><span>{item.name}</span><strong>₹{item.price}</strong></li>)}</ul>
+                    <div className="order-divider"><span className="total-label">Total</span><span className="total-highlight">₹{cartTotal}</span></div>
                 </div>
             )}
-
-            {/* 2. ALIGNED FORM */}
             <form onSubmit={onSubmit}>
                 <div className="form-row">
-                    <div className="form-group">
-                        <label>Your Name</label>
-                        <input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required placeholder="e.g. Rahul Singh" />
-                    </div>
-                    <div className="form-group">
-                        <label>Contact Number</label>
-                        <input type="tel" className="input" value={form.contact} onChange={e => setForm({ ...form, contact: e.target.value })} required placeholder="e.g. 98765 43210" />
-                    </div>
+                    <div className="form-group"><label>Name</label><input className="input" value={form.name} onChange={e=>setForm({...form,name:e.target.value})} required /></div>
+                    <div className="form-group"><label>Phone</label><input className="input" value={form.contact} onChange={e=>setForm({...form,contact:e.target.value})} required /></div>
                 </div>
-                
                 <div className="form-row">
-                    <div className="form-group">
-                        <label>Pickup / Delivery Date</label>
-                        <input type="date" className="input" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} required />
-                    </div>
-                    
-                    {!isCartOrder && (
-                        <div className="form-group">
-                            <label>Items Required</label>
-                            <input className="input" value={form.items} onChange={e => setForm({ ...form, items: e.target.value })} placeholder="e.g. 1kg Truffle Cake" />
-                        </div>
-                    )}
+                    <div className="form-group"><label>Date</label><input type="date" className="input" value={form.date} onChange={e=>setForm({...form,date:e.target.value})} required /></div>
+                    {!isCartOrder && <div className="form-group"><label>Items</label><input className="input" value={form.items} onChange={e=>setForm({...form,items:e.target.value})} /></div>}
                 </div>
-
-                <div className="form-group">
-                    <label>Special Instructions / Message</label>
-                    <textarea rows={3} className="input" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="e.g. Write 'Happy Birthday' on the cake in red cream..." />
-                </div>
-
-                <button className="btn btn-whatsapp mt-4" type="submit">
-                    <span style={{ fontSize: '1.4rem' }}>👉</span> Place Order on WhatsApp
-                </button>
+                <div className="form-group"><label>Notes</label><textarea rows={3} className="input" value={form.notes} onChange={e=>setForm({...form,notes:e.target.value})} /></div>
+                <button className="btn btn-whatsapp mt-4" type="submit">Place Order on WhatsApp</button>
             </form>
         </div>
-      </div>
-    </main>
+    </div></main>
   )
+}
+
+// --- ADMIN ---
+function AdminLogin({ onLogin }) {
+  const [creds, setCreds] = useState({username:'', password:''});
+  const [error, setError] = useState('');
+  const submit = async (e) => {
+    e.preventDefault();
+    try {
+        const res = await fetch(`${API_URL}/api/admin/login`, { method: 'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(creds) });
+        if(res.ok) { const data = await res.json(); sessionStorage.setItem('adminAuth','true'); sessionStorage.setItem('adminToken', data.token); onLogin(); }
+        else setError('Invalid Credentials');
+    } catch { setError('Login failed'); }
+  }
+  return <main className="section"><div className="container" style={{maxWidth:'400px'}}><div className="section-title">Admin Login</div>{error&&<p style={{color:'red'}}>{error}</p>}<form onSubmit={submit}><input className="input mb-2" placeholder="Username" value={creds.username} onChange={e=>setCreds({...creds,username:e.target.value})}/><input type="password" className="input mb-2" placeholder="Password" value={creds.password} onChange={e=>setCreds({...creds,password:e.target.value})}/><button className="btn">Login</button></form></div></main>
+}
+
+function AdminDashboard({ config, onUpdateConfig }) {
+  const [tab, setTab] = useState('products');
+  const [items, setItems] = useState([]);
+  const [form, setForm] = useState({});
+  const [settingsForm, setSettingsForm] = useState(config || {});
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => { if(tab!=='settings') loadItems() }, [tab]);
+
+  const loadItems = async () => { const res = await fetch(`${API_URL}/api/${tab}`); setItems(await res.json()); }
+  const handleUpload = async (e) => {
+      const file = e.target.files[0]; if(!file)return;
+      if(file.size > 2*1024*1024) { alert('File > 2MB'); return; }
+      setForm({...form, image: await convertToBase64(file)});
+  }
+  const saveItem = async () => {
+      setLoading(true); const id = form.id || (tab==='products'?'p':'ff')+Date.now();
+      const body = { ...form, id, price: Number(form.price), prices: form.prices };
+      await fetch(`${API_URL}/api/${tab}/${id}`, { method: form.id?'PUT':'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      setForm({}); loadItems(); setLoading(false);
+  }
+  const deleteItem = async (id) => { if(confirm('Delete?')) await fetch(`${API_URL}/api/${tab}/${id}`, {method:'DELETE'}); loadItems(); }
+  
+  const saveSettings = async () => {
+      const res = await fetch(`${API_URL}/api/config`, { method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(settingsForm) });
+      onUpdateConfig(await res.json()); alert('Settings Saved!');
+  }
+
+  const logout = () => { sessionStorage.removeItem('adminAuth'); window.location.hash = `#/${PAGES.home}`; }
+
+  return (
+    <main className="section"><div className="container">
+       <div className="section-title">Admin Dashboard</div>
+       <div className="flex gap-2 mb-3">
+           <button className={`btn ${tab!=='products'?'outline':''}`} onClick={()=>setTab('products')}>Products</button>
+           <button className={`btn ${tab!=='fastfood'?'outline':''}`} onClick={()=>setTab('fastfood')}>Fast Food</button>
+           <button className={`btn ${tab!=='settings'?'outline':''}`} onClick={()=>setTab('settings')}>⚙️ Settings</button>
+           <button className="btn outline" onClick={logout}>Logout</button>
+       </div>
+
+       {tab === 'settings' ? (
+           <div className="card p-3">
+               <h4>General Info</h4>
+               <div className="form-row">
+                   <div><label>Shop Name</label><input className="input" value={settingsForm.shopName} onChange={e=>setSettingsForm({...settingsForm, shopName:e.target.value})} /></div>
+                   <div><label>WhatsApp (No +)</label><input className="input" value={settingsForm.whatsapp} onChange={e=>setSettingsForm({...settingsForm, whatsapp:e.target.value})} /></div>
+               </div>
+               <div className="mt-2"><label>Address</label><input className="input" value={settingsForm.address} onChange={e=>setSettingsForm({...settingsForm, address:e.target.value})} /></div>
+               <h4 className="mt-4">Hero & Banner</h4>
+               <div className="mt-2"><label>Hero Title</label><input className="input" value={settingsForm.heroTitle} onChange={e=>setSettingsForm({...settingsForm, heroTitle:e.target.value})} /></div>
+               <div className="mt-2"><label>Hero Subtitle</label><textarea className="input" value={settingsForm.heroSubtitle} onChange={e=>setSettingsForm({...settingsForm, heroSubtitle:e.target.value})} /></div>
+               <div className="mt-2"><label>Banner Title</label><input className="input" value={settingsForm.bannerTitle} onChange={e=>setSettingsForm({...settingsForm, bannerTitle:e.target.value})} /></div>
+               <div className="mt-2"><label>Banner Text</label><input className="input" value={settingsForm.bannerText} onChange={e=>setSettingsForm({...settingsForm, bannerText:e.target.value})} /></div>
+               <button className="btn mt-4" onClick={saveSettings}>Save Changes</button>
+           </div>
+       ) : (
+           <>
+             <div className="card p-3 mb-3">
+                 <h4>{form.id?'Edit':'Add'} {tab}</h4>
+                 <div className="form-row">
+                     <input className="input" placeholder="Name" value={form.name||''} onChange={e=>setForm({...form,name:e.target.value})}/>
+                     <input className="input" placeholder="Category" value={form.category||''} onChange={e=>setForm({...form,category:e.target.value})}/>
+                 </div>
+                 {tab==='products' ? <input className="input mt-2" placeholder="Price" value={form.price||''} onChange={e=>setForm({...form,price:e.target.value})} /> : 
+                 <div className="form-row mt-2"><input className="input" placeholder="Half Price" value={form.prices?.half||''} onChange={e=>setForm({...form,prices:{...form.prices,half:e.target.value}})} /><input className="input" placeholder="Full Price" value={form.prices?.full||''} onChange={e=>setForm({...form,prices:{...form.prices,full:e.target.value}})} /></div>}
+                 <div className="mt-2"><input type="file" className="input" onChange={handleUpload} />{form.image && <img src={form.image} style={{height:'50px'}} />}</div>
+                 <textarea className="input mt-2" placeholder="Description" value={form.description||''} onChange={e=>setForm({...form,description:e.target.value})} />
+                 <button className="btn mt-2" onClick={saveItem} disabled={loading}>{loading?'Saving...':'Save'}</button>
+                 {form.id && <button className="btn outline mt-2 ml-2" onClick={()=>setForm({})}>Cancel</button>}
+             </div>
+             <div className="grid">{items.map(i=><div className="card" key={i.id}><div className="card-body"><div><b>{i.name}</b></div><div className="flex gap-2 mt-2"><button className="btn small" onClick={()=>setForm(i)}>Edit</button><button className="btn small outline" onClick={()=>deleteItem(i.id)}>Delete</button></div></div></div>)}</div>
+           </>
+       )}
+    </div></main>
+  )
+}
+
+function Admin({ config, onUpdateConfig }) {
+  const [authed, setAuthed] = useState(sessionStorage.getItem('adminAuth') === 'true')
+  return authed ? <AdminDashboard config={config} onUpdateConfig={onUpdateConfig} /> : <AdminLogin onLogin={()=>setAuthed(true)} />
 }
 
 function About() {
   return (
-    <main className="section"><div className="container">
-        <div className="section-title">About Us</div>
-        <p>We believe in homemade happiness. Our bakery started with a simple mission: craft warm, cozy, and inviting bakes that bring people together.</p>
-        <div className="grid mt-3">
-             <div className="card"><img src="https://placehold.co/600x400/fff7eb/6b4f3b?text=Team" /></div>
-             <div className="card"><img src="https://placehold.co/600x400/fff7eb/6b4f3b?text=Kitchen" /></div>
-        </div>
-    </div></main>
+    <main className="section"><div className="container"><div className="section-title">About Us</div><p>We believe in homemade happiness. Our bakery started with a simple mission: craft warm, cozy, and inviting bakes that bring people together.</p><div className="grid mt-3"><div className="card"><img src="https://placehold.co/600x400/fff7eb/6b4f3b?text=Team" /></div><div className="card"><img src="https://placehold.co/600x400/fff7eb/6b4f3b?text=Kitchen" /></div></div></div></main>
   )
 }
 
-function Contact() {
+function Contact({ config }) {
   return (
-    <main className="section"><div className="container">
-        <div className="section-title">Contact Us</div>
-        <p>📍 Bannakhera, Uttarakhand <br/> ☎️ +91 8433138312</p>
-        <div className="hero-card mt-3">
-            <iframe title="Map" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3431.8829893200686!2d79.126!3d29.397!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sRamnagar!5e0!3m2!1sen!2sin!4v1700000000000" width="100%" height="320" style={{ border: 0 }} allowFullScreen="" loading="lazy"></iframe>
-        </div>
-    </div></main>
+    <main className="section"><div className="container"><div className="section-title">Contact Us</div><p>📍 {config.address} <br/> ☎️ +{config.whatsapp}</p><div className="hero-card mt-3"><iframe title="Map" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3431.8829893200686!2d79.126!3d29.397!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sRamnagar!5e0!3m2!1sen!2sin!4v1700000000000" width="100%" height="320" style={{ border: 0 }} allowFullScreen="" loading="lazy"></iframe></div></div></main>
   )
 }
 
@@ -855,58 +516,45 @@ function App() {
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [toast, setToast] = useState(null)
   const [dark, setDark] = useState(false)
+  const [config, setConfig] = useState(DEFAULT_CONFIG)
+
+  useEffect(() => {
+      fetch(`${API_URL}/api/config`).then(r=>r.json()).then(d=>d && setConfig(prev=>({...prev, ...d}))).catch(console.error);
+  }, []);
 
   useEffect(()=> { document.documentElement.classList.toggle('dark', dark) }, [dark])
 
-  const onAdd = (item) => {
-      setCart(c => [...c, item]);
-      setToast(`Added ${item.name}`);
-      setTimeout(()=>setToast(null), 2000);
-  }
+  const onAdd = (item) => { setCart(c => [...c, item]); setToast(`Added ${item.name}`); setTimeout(()=>setToast(null), 2000); }
 
   return (
     <>
-      <Header navigate={navigate} page={page} toggleDark={()=>setDark(!dark)} cartCount={cart.length} onOpenCart={()=>setCartOpen(true)} />
+      <Header navigate={navigate} page={page} toggleDark={()=>setDark(!dark)} cartCount={cart.length} onOpenCart={()=>setCartOpen(true)} config={config} />
       
-      {page===PAGES.home && <Home navigate={navigate} onViewProduct={setSelectedProduct} />}
+      {page===PAGES.home && <Home navigate={navigate} onViewProduct={setSelectedProduct} config={config} />}
       {page===PAGES.menu && <Menu onViewProduct={setSelectedProduct} onAdd={onAdd} />} 
-      {page===PAGES.order && <Order cart={cart} />}
+      {page===PAGES.order && <Order cart={cart} config={config} />}
       {page===PAGES.about && <About />}
-      {page===PAGES.contact && <Contact />}
-      {page===PAGES.admin && <Admin />}
+      {page===PAGES.contact && <Contact config={config} />}
+      {page===PAGES.admin && <Admin config={config} onUpdateConfig={setConfig} />}
       
-      {/* Product Details Modal */}
-      {selectedProduct && (
-          <ProductDetailsModal product={selectedProduct} onClose={() => setSelectedProduct(null)} onAdd={onAdd} />
-      )}
+      {selectedProduct && <ProductDetailsModal product={selectedProduct} onClose={() => setSelectedProduct(null)} onAdd={onAdd} />}
 
-      {/* Cart Drawer */}
       {cartOpen && (
         <div className="drawer-backdrop" onClick={()=>setCartOpen(false)}>
           <aside className="drawer" onClick={e=>e.stopPropagation()}>
             <div className="drawer-header">Cart ({cart.length})</div>
             <div className="drawer-body">
                 {cart.length === 0 && <p className="small">Cart is empty</p>}
-                {cart.map((item, i) => (
-                    <div className="drawer-item" key={i}>
-                        <div>{item.name}</div>
-                        <div>₹{item.price}</div>
-                        <button onClick={()=>setCart(c=>c.filter((_,idx)=>idx!==i))}>x</button>
-                    </div>
-                ))}
+                {cart.map((item, i) => <div className="drawer-item" key={i}><div>{item.name}</div><div>₹{item.price}</div><button onClick={()=>setCart(c=>c.filter((_,idx)=>idx!==i))}>x</button></div>)}
             </div>
-            <div className="drawer-footer">
-                <div className="flex gap-2 justify-between mb-2"><strong>Total</strong><strong>₹{cart.reduce((a,b)=>a+b.price,0)}</strong></div>
-                <button className="btn" onClick={()=>{setCartOpen(false); navigate(PAGES.order)}}>Checkout</button>
-            </div>
+            <div className="drawer-footer"><div className="flex gap-2 justify-between mb-2"><strong>Total</strong><strong>₹{cart.reduce((a,b)=>a+b.price,0)}</strong></div><button className="btn" onClick={()=>{setCartOpen(false); navigate(PAGES.order)}}>Checkout</button></div>
           </aside>
         </div>
       )}
 
       {toast && <div style={{position:'fixed', bottom:'20px', left:'50%', transform:'translateX(-50%)', background:'#333', color:'#fff', padding:'10px 20px', borderRadius:'20px', zIndex:4000}}>{toast}</div>}
-      
-      <a className="fab" href="https://wa.me/8433138312" target="_blank" rel="noreferrer">Chat</a>
-      <Footer />
+      <a className="fab" href={`https://wa.me/${config.whatsapp}`} target="_blank" rel="noreferrer">Chat</a>
+      <Footer config={config} />
     </>
   )
 }
