@@ -503,7 +503,7 @@ function About() {
 
 function Contact({ config }) {
   return (
-    <main className="section"><div className="container"><div className="section-title">Contact Us</div><p>📍 {config.address} <br/> ☎️ +{config.whatsapp}</p><div className="hero-card mt-3"><iframe title="Map" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3431.8829893200686!2d79.126!3d29.397!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sRamnagar!5e0!3m2!1sen!2sin!4v1700000000000" width="100%" height="320" style={{ border: 0 }} allowFullScreen="" loading="lazy"></iframe></div></div></main>
+    <main className="section"><div className="container"><div className="section-title">Contact Us</div><p>📍 {config.address} <br/> ☎️ +{config.whatsapp}</p><div className="hero-card mt-3"><iframe title="Map" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3481.444601166025!2d79.1594372!3d29.239886900000002!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x390a6f51a968a4e7%3A0x418435b96c967134!2sCorbett%20Bakers!5e0!3m2!1sen!2sin!4v1765628347488!5m2!1sen!2sin" width="100%" height="320" style={{ border: 0 }} allowFullScreen="" loading="lazy"></iframe></div></div></main>
   )
 }
 
