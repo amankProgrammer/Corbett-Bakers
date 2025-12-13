@@ -1,9 +1,12 @@
 import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
-import { initializeDB } from './db/init.js';
+import mongoose from 'mongoose'; // Import mongoose
+import dotenv from 'dotenv';
 import productsRouter from './routes/products.js';
 import fastfoodRouter from './routes/fastfood.js';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -13,9 +16,16 @@ app.use(cors());
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ limit: '50mb', extended: true }));
 
-// Initialize database
-await initializeDB();
+// --- DATABASE CONNECTION ---
+// Paste your MongoDB string in a .env file, or hardcode here TEMPORARILY for testing
+// ideally: process.env.MONGO_URI
+const MONGO_URI = process.env.MONGO_URI; 
 
+mongoose.connect(MONGO_URI)
+  .then(() => console.log('🍃 MongoDB Connected Successfully'))
+  .catch((err) => console.error('MongoDB Connection Error:', err));
+
+  
 // Routes
 app.use('/api/products', productsRouter);
 app.use('/api/fastfood', fastfoodRouter);

@@ -1,64 +1,82 @@
 import express from 'express';
-import { db, runQuery, runUpdate } from '../db/init.js';
+import Product from '../models/Product.js'; // Import the Mongoose Model
 
 const router = express.Router();
 
-// Get all products
+// 1. Get all products
 router.get('/', async (req, res) => {
   try {
-    const rows = await runQuery('SELECT * FROM products ORDER BY created_at DESC');
-    res.json(rows || []);
+    // .find() fetches everything
+    // .sort({ createdAt: -1 }) sorts by newest first (like ORDER BY created_at DESC)
+    const products = await Product.find().sort({ createdAt: -1 });
+    res.json(products);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Get single product
+// 2. Get single product
 router.get('/:id', async (req, res) => {
   try {
-    const rows = await runQuery('SELECT * FROM products WHERE id = ?', [req.params.id]);
-    res.json(rows[0] || null);
+    // We search using your custom 'id' field (not MongoDB's _id)
+    const product = await Product.findOne({ id: req.params.id });
+    res.json(product || null);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Add product
+// 3. Add product
 router.post('/', async (req, res) => {
   try {
     const { id, name, description, price, category, image } = req.body;
+    
+    // validation
     if (!id || !name || !price || !category) {
       return res.status(400).json({ error: 'Missing required fields' });
     }
+
+    // Create a new instance of the model
+    const newProduct = new Product({
+      id,          // Custom ID from frontend
+      name,
+      description,
+      price,
+      category,
+      image
+    });
+
+    // Save it to MongoDB Atlas
+    await newProduct.save();
     
-    await runUpdate(
-      'INSERT INTO products (id, name, description, price, category, image) VALUES (?, ?, ?, ?, ?, ?)',
-      [id, name, description, price, category, image]
-    );
     res.json({ success: true, id });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Update product
+// 4. Update product
 router.put('/:id', async (req, res) => {
   try {
     const { name, description, price, category, image } = req.body;
-    await runUpdate(
-      'UPDATE products SET name = ?, description = ?, price = ?, category = ?, image = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
-      [name, description, price, category, image, req.params.id]
+    
+    // findOneAndUpdate( filter, update_data )
+    await Product.findOneAndUpdate(
+      { id: req.params.id }, 
+      { name, description, price, category, image }
     );
+    
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// Delete product
+// 5. Delete product
 router.delete('/:id', async (req, res) => {
   try {
-    await runUpdate('DELETE FROM products WHERE id = ?', [req.params.id]);
+    // findOneAndDelete matches your custom id and removes the document
+    await Product.findOneAndDelete({ id: req.params.id });
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

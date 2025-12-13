@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from 'react'
 import './index.css'
 
+// --- CONSTANTS & CONFIG ---
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000'
 const PAGES = { home: 'home', menu: 'menu', order: 'order', gallery: 'gallery', about: 'about', contact: 'contact', admin: 'admin' }
+
 // Build gallery from local images placed in public/images
 const GALLERY_IMAGES = Array.from({ length: 16 }, (_, i) => `/images/cake_${i+1}.jpg`)
 
+// --- SHARED COMPONENTS ---
+
 function Gallery() {
-  // 1. State to track the currently selected image (null means no image is open)
   const [selectedImage, setSelectedImage] = useState(null)
 
   return (
@@ -18,13 +21,11 @@ function Gallery() {
           A glimpse into our kitchen and happy customers.
         </p>
         
-        {/* Gallery Grid */}
         <div className="grid">
           {GALLERY_IMAGES.map((src, i) => (
             <div 
               className="card" 
               key={i}
-              // 2. Add click handler to open the image
               onClick={() => setSelectedImage(src)}
               style={{ cursor: 'pointer' }}
               title="Click to zoom"
@@ -36,7 +37,7 @@ function Gallery() {
                   loading="lazy" 
                   style={{ width: '100%', height: '100%', objectFit: 'cover', aspectRatio: '1/1' }}
                   onError={(e) => {
-                     e.target.src = 'https://placehold.co/600x600/fde2e4/6b4f3b?text=Delicious' 
+                      e.target.src = 'https://placehold.co/600x600/fde2e4/6b4f3b?text=Delicious' 
                   }}
                 />
               </div>
@@ -44,54 +45,29 @@ function Gallery() {
           ))}
         </div>
 
-        {/* 3. The Lightbox Modal (Only shows if selectedImage is not null) */}
         {selectedImage && (
           <div 
             className="lightbox-overlay" 
-            onClick={() => setSelectedImage(null)} // Close when clicking background
+            onClick={() => setSelectedImage(null)}
             style={{
-              position: 'fixed',
-              top: 0,
-              left: 0,
-              width: '100vw',
-              height: '100vh',
-              backgroundColor: 'rgba(0, 0, 0, 0.9)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 2000,
-              cursor: 'zoom-out'
+              position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+              backgroundColor: 'rgba(0, 0, 0, 0.9)', display: 'flex', alignItems: 'center',
+              justifyContent: 'center', zIndex: 2000, cursor: 'zoom-out'
             }}
           >
-            {/* Close Button */}
             <button 
               onClick={() => setSelectedImage(null)}
               style={{
-                position: 'absolute',
-                top: '20px',
-                right: '30px',
-                background: 'transparent',
-                border: 'none',
-                color: '#fff',
-                fontSize: '2rem',
-                cursor: 'pointer'
+                position: 'absolute', top: '20px', right: '30px', background: 'transparent',
+                border: 'none', color: '#fff', fontSize: '2rem', cursor: 'pointer'
               }}
             >
-              &times;
+              ×
             </button>
-
-            {/* Large Image */}
             <img 
               src={selectedImage} 
               alt="Enlarged view" 
-              style={{
-                maxWidth: '90%',
-                maxHeight: '90%',
-                borderRadius: '8px',
-                boxShadow: '0 4px 20px rgba(0,0,0,0.5)',
-                cursor: 'default' 
-              }}
-              // Stop clicks on the image from closing the modal
+              style={{ maxWidth: '90%', maxHeight: '90%', borderRadius: '8px', cursor: 'default' }}
               onClick={(e) => e.stopPropagation()} 
             />
           </div>
@@ -171,54 +147,7 @@ function Footer() {
   )
 }
 
-const products = [
-  { id: 'cake1', name: 'Chocolate Truffle Cake', desc: 'Rich cocoa layers with ganache', price: 799, image: '/images/cake_1.jpg' , category: 'Cakes'},
-  { id: 'cake2', name: 'Red Velvet Cake', desc: 'Cream cheese frosting, classic favorite', price: 899, image: '/images/cake_2.jpg' , category: 'Cakes'},
-  { id: 'pastry1', name: 'Strawberry Pastry', desc: 'Light sponge, fresh berries', price: 129, image: '/images/cake_3.jpg' , category: 'Pastries'},
-  { id: 'cookie1', name: 'Choco Chip Cookies', desc: 'Crispy edges, gooey center', price: 99, image: '/images/cake_4.jpg' , category: 'Cookies'},
-  { id: 'bread1', name: 'Whole Wheat Bread', desc: 'Made fresh every morning', price: 89, image: '/images/cake_6.jpg' , category: 'Bread'},
-  { id: 'cupcake1', name: 'Vanilla Cupcake', desc: 'Buttercream swirl, sprinkles', price: 79, image: '/images/cake_5.jpg' , category: 'Cupcakes'},
-  // Birthday specials
-  { id: 'bday1', name: 'Birthday Theme Cake', desc: 'Custom design, eggless available', price: 1299, image: '/images/cake_11.jpg', category: 'Birthday' },
-  { id: 'bday2', name: 'Photo Print Cake', desc: 'Edible photo topper, premium finish', price: 1599, image: '/images/cake_13.jpg', category: 'Birthday' },
-  { id: 'bday3', name: 'Party Box Cupcakes (6)', desc: 'Assorted flavors • sprinkles & toppers', price: 499, image: '/images/cake_15.jpg', category: 'Birthday' },
-  // Birthday decor & supplies
-  { id: 'decor1', name: 'Balloon Pack (20)', desc: 'Colorful latex balloons', price: 199, image: 'https://images.weserv.nl/?url=loremflickr.com/600/600/balloons', category: 'Birthday Decor' },
-  { id: 'decor2', name: 'Ribbon Roll', desc: 'Glossy gift ribbons', price: 99, image: 'https://images.weserv.nl/?url=loremflickr.com/600/600/ribbons', category: 'Birthday Decor' },
-  { id: 'decor3', name: 'Candles Set (12)', desc: 'Assorted birthday candles', price: 89, image: 'https://images.weserv.nl/?url=loremflickr.com/600/600/birthday,candles', category: 'Birthday Decor' },
-  { id: 'decor4', name: 'Party Poppers (4)', desc: 'Confetti poppers for celebrations', price: 149, image: 'https://images.weserv.nl/?url=loremflickr.com/600/600/party,poppers', category: 'Birthday Decor' },
-  { id: 'decor5', name: 'Party Masks (6)', desc: 'Fun face masks for kids', price: 129, image: 'https://images.weserv.nl/?url=loremflickr.com/600/600/party,mask', category: 'Birthday Decor' },
-  { id: 'decor6', name: 'Birthday Crown', desc: 'Gold crown for the star', price: 99, image: 'https://images.weserv.nl/?url=loremflickr.com/600/600/crown', category: 'Birthday Decor' },
-  { id: 'decor7', name: 'Candies Jar', desc: 'Assorted sweets for party favors', price: 149, image: 'https://images.weserv.nl/?url=loremflickr.com/600/600/candies', category: 'Birthday Decor' },
-]
-
-// Fast Food Corner items with half/full pricing
-const fastFoodItems = [
-  { id:'ff1', name:'Steam Momos (Veg.)', category:'Momos', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/dumpling', prices:{ half:30, full:50 } },
-  { id:'ff2', name:'Steam Paneer or Mushroom Momos', category:'Momos', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/dumplings,vegetarian', prices:{ half:50, full:100 } },
-  { id:'ff3', name:'Fry Momos', category:'Momos', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/fried%20dumplings', prices:{ half:40, full:60 } },
-  { id:'ff4', name:'Tandoori Momos', category:'Momos', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/spicy%20dumplings', prices:{ half:50, full:80 } },
-  { id:'ff5', name:'Kurkure Momos (Veg.)', category:'Momos', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/crispy%20dumplings', prices:{ half:50, full:80 } },
-  { id:'ff6', name:'Kurkure Paneer or Mushroom Momos', category:'Momos', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/crispy%20dumplings,paneer', prices:{ half:70, full:140 } },
-  { id:'ff7', name:'Chilli Momos', category:'Momos', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/spicy%20dumplings', prices:{ half:60, full:110 } },
-  { id:'ff8', name:'Veg Chowmein', category:'Chowmein', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/noodles', prices:{ half:30, full:50 } },
-  { id:'ff9', name:'Hakka Noodles', category:'Chowmein', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/hakka,noodles', prices:{ half:50, full:80 } },
-  { id:'ff10', name:'Paneer Chowmein', category:'Chowmein', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/paneer,noodles', prices:{ half:50, full:80 } },
-  { id:'ff11', name:'Chilli Garlic Chowmein', category:'Chowmein', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/garlic,noodles', prices:{ half:50, full:80 } },
-  { id:'ff12', name:'Fried Rice', category:'Rice', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/fried%20rice', prices:{ half:30, full:50 } },
-  { id:'ff13', name:'Paneer Fried Rice', category:'Rice', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/paneer,rice', prices:{ half:50, full:80 } },
-  { id:'ff14', name:'Burger Aloo Tikki', category:'Burgers', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/veg%20burger', prices:{ full:40 } },
-  { id:'ff15', name:'Burger Paneer', category:'Burgers', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/paneer,burger', prices:{ full:80 } },
-  { id:'ff16', name:'Cheese Burger', category:'Burgers', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/cheese,burger', prices:{ full:60 } },
-  { id:'ff17', name:'Manchurian Veg. (Dry)', category:'Chinese', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/manchurian', prices:{ half:80, full:150 } },
-  { id:'ff18', name:'Manchurian Veg. (Gravy)', category:'Chinese', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/manchurian,gravy', prices:{ half:100, full:180 } },
-  { id:'ff19', name:'Chilli Paneer', category:'Chinese', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/chilli%20paneer', prices:{ half:80, full:150 } },
-  { id:'ff20', name:'Chilli Potato', category:'Chinese', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/chilli%20potato', prices:{ half:80, full:150 } },
-  { id:'ff21', name:'Spring Roll', category:'Snacks', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/spring%20roll', prices:{ full:50 } },
-  { id:'ff22', name:'Pasta', category:'Pasta', image:'https://images.weserv.nl/?url=loremflickr.com/600/600/pasta', prices:{ half:50, full:90 } },
-]
-
-// API-based data fetching
+// --- DATA FETCHING HELPERS ---
 async function fetchProductsFromAPI() {
   try {
     const response = await fetch(`${API_URL}/api/products`)
@@ -241,12 +170,15 @@ async function fetchFastFoodFromAPI() {
   }
 }
 
+// --- CARDS ---
+
 function FastFoodCard({ item, onAdd }) {
   const hasHalf = item.prices && typeof item.prices.half === 'number'
   const hasFull = item.prices && typeof item.prices.full === 'number'
   return (
     <div className="card">
-      <img src={item.image} alt={item.name} loading="lazy" crossOrigin="anonymous" referrerPolicy="no-referrer" />
+      <img src={item.image} alt={item.name} loading="lazy" crossOrigin="anonymous" referrerPolicy="no-referrer" 
+           onError={(e)=>e.target.src='https://placehold.co/600x400?text=No+Image'}/>
       <div className="card-body">
         <div className="chip" aria-label={item.category}>{item.category}</div>
         <div className="card-title">{item.name}</div>
@@ -272,11 +204,12 @@ function ProductCard({ item, onAdd }) {
   return (
     <div className="card">
       <div className="sticker"><div><small>only</small> ₹ {item.price}</div></div>
-      <img src={item.image} alt={item.name} loading="lazy" crossOrigin="anonymous" referrerPolicy="no-referrer" />
+      <img src={item.image} alt={item.name} loading="lazy" crossOrigin="anonymous" referrerPolicy="no-referrer" 
+           onError={(e)=>e.target.src='https://placehold.co/600x400?text=No+Image'}/>
       <div className="card-body">
         <div className="chip" aria-label={item.category}>{item.category}</div>
         <div className="card-title">{item.name}</div>
-        <div className="card-desc">{item.desc}</div>
+        <div className="card-desc">{item.desc || item.description}</div>
         <div className="card-price">₹ {item.price}</div>
         <div className="card-actions">
           <button className="btn" onClick={()=>onAdd(item)}>Add to Cart</button>
@@ -286,6 +219,8 @@ function ProductCard({ item, onAdd }) {
     </div>
   )
 }
+
+// --- PAGES ---
 
 function Home({ navigate }) {
   const [products, setProducts] = useState([])
@@ -317,6 +252,7 @@ function Home({ navigate }) {
     }
     loadData()
   }, [])
+
   return (
     <main>
       <section className="hero">
@@ -328,23 +264,19 @@ function Home({ navigate }) {
               <button className="btn" onClick={()=>navigate(PAGES.order)}>Order Now</button>
               <button className="btn outline" onClick={()=>navigate(PAGES.menu)}>View Menu</button>
             </div>
-            <div className="mt-3 small">Follow us on <a href="https://instagram.com" target="_blank" rel="noreferrer">Instagram</a></div>
           </div>
           <div>
               <div className="carousel" style={{ position: 'relative', overflow: 'hidden', width: '100%', height: '400px', borderRadius: '16px' }}>
-                {/* Track: Added display:flex and height:100% to keep slides aligned */}
                 <div className="carousel-track" style={{ display: 'flex', height: '100%', transition: 'transform 0.5s ease-in-out', transform: `translateX(-${index*100}%)` }}>
                   {slides.map((s, i)=> (
-                    /* Slide: Added minWidth: 100% so it takes full width of the parent */
                     <div className="carousel-slide" key={i} style={{ minWidth: '100%', height: '100%', position: 'relative' }}>
                       <div className="hero-card" style={{ width: '100%', height: '100%' }}>
-                        {/* Image: width/height 100% fills the box, objectFit: 'cover' prevents distortion */}
                         <img 
                           src={s.src} 
                           alt={s.caption} 
                           style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
+                          onError={(e)=>e.target.src='https://placehold.co/800x400?text=Corbett+Bakers'}
                         />
-                        {/* Caption: Added absolute positioning to sit on top of the image */}
                         <div className="caption" style={{ position: 'absolute', bottom: '20px', left: '20px', background: 'rgba(255,255,255,0.9)', padding: '8px 16px', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 'bold' }}>
                           {s.caption}
                         </div>
@@ -352,8 +284,6 @@ function Home({ navigate }) {
                     </div>
                   ))}
                 </div>
-  
-                {/* Navigation Dots */}
                 <div className="carousel-nav">
                   {slides.map((_, i)=> (
                     <div key={i} className={`dot ${i===index? 'active':''}`} onClick={()=> setIndex(i)} />
@@ -363,21 +293,24 @@ function Home({ navigate }) {
           </div>
         </div>
       </section>
+
       <section className="section">
         <div className="container">
           <div className="section-title">Best Sellers</div>
+          {loading && <div className="text-center">Loading fresh bakes...</div>}
           <div className="grid">
             {!loading && products.slice(0,4).map((p)=> <ProductCard key={p.id} item={p} onAdd={()=>{}} />)}
-            {loading && <div className="small">Loading products...</div>}
           </div>
         </div>
       </section>
+
       <section className="section accent">
         <div className="container">
           <div className="section-title">Birthday Specials</div>
           <p className="muted" style={{marginTop:'-8px'}}>Theme cakes, photo cakes, and party boxes—made to celebrate.</p>
+          {loading && <div className="text-center">Loading specials...</div>}
           <div className="grid">
-            {!loading && products.filter(p=> p.category==='Birthday').map((p)=> (
+            {!loading && products.filter(p=> p.category==='Birthday').slice(0, 4).map((p)=> (
               <ProductCard key={p.id} item={p} onAdd={()=>{}} />
             ))}
           </div>
@@ -389,47 +322,22 @@ function Home({ navigate }) {
             <div className="party-chip">🎀 Ribbons</div>
             <div className="party-chip">🕯️ Candles</div>
             <div className="party-chip">🎉 Poppers</div>
-            <div className="party-chip">🎭 Masks</div>
-            <div className="party-chip">👑 Crown</div>
-            <div className="party-chip">🍬 Candies</div>
-          </div>
-        </div>
-      </section>
-      <section className="section">
-        <div className="container">
-          <div className="section-title">Quick Bites & Snacks</div>
-          <p className="muted" style={{marginTop:'-8px'}}>Perfect for tea time, office breaks, or anytime cravings.</p>
-          <div className="grid">
-            {!loading && fastFood.slice(0, 8).map((ff)=> (
-              <div key={ff.id} className="card product-card">
-                <div className="card-image">
-                  <img src={ff.image} alt={ff.name} loading="lazy" crossOrigin="anonymous" referrerPolicy="no-referrer" />
-                </div>
-                <div className="card-body">
-                  <div className="card-title">{ff.name.split('(')[0].trim()}</div>
-                  <div className="card-desc small">{ff.description}</div>
-                  {ff.price && <div className="price mt-2">₹{ff.price}</div>}
-                </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-3 text-center">
-            <a className="btn" href="#/menu" onClick={(e)=>{e.preventDefault();navigate(PAGES.menu)}}>View Full Menu</a>
-          </div>
-        </div>
-      </section>
-      <section className="section paper">
-        <div className="container">
-          <div className="section-title">Baker's Note</div>
-          <div className="card">
-            <div className="card-body">
-              <div className="card-desc">We bake in small batches, using real butter, farm-fresh eggs, and seasonal fruits. Each recipe is perfected over years to bring a smile to your table.</div>
-              <div className="mt-2 script">— Chef Jeetu</div>
-            </div>
           </div>
         </div>
       </section>
 
+      <section className="section">
+        <div className="container">
+          <div className="section-title">Quick Bites & Snacks</div>
+          <p className="muted" style={{marginTop:'-8px'}}>Perfect for tea time, office breaks, or anytime cravings.</p>
+          {loading && <div className="text-center">Loading snacks...</div>}
+          <div className="grid">
+            {!loading && fastFood.slice(0, 8).map((ff)=> (
+               <FastFoodCard key={ff.id} item={ff} onAdd={()=>{}} />
+            ))}
+          </div>
+        </div>
+      </section>
     </main>
   )
 }
@@ -438,6 +346,10 @@ function Menu({ onAdd }) {
   const [products, setProducts] = useState([])
   const [fastFood, setFastFood] = useState([])
   const [loading, setLoading] = useState(true)
+
+  // Search and Filter State
+  const [searchTerm, setSearchTerm] = useState('')
+  const [filterCategory, setFilterCategory] = useState('All')
 
   useEffect(() => {
     const loadData = async () => {
@@ -453,67 +365,82 @@ function Menu({ onAdd }) {
     loadData()
   }, [])
 
+  // Collect all unique categories
+  const allCategories = useMemo(() => {
+    const pCats = products.map(p => p.category)
+    const fCats = fastFood.map(f => f.category)
+    return ['All', ...new Set([...pCats, ...fCats])]
+  }, [products, fastFood])
+
+  // Filter Logic
+  const filteredProducts = products.filter(p => {
+    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesCat = filterCategory === 'All' || p.category === filterCategory
+    return matchesSearch && matchesCat
+  })
+
+  const filteredFastFood = fastFood.filter(f => {
+    const matchesSearch = f.name.toLowerCase().includes(searchTerm.toLowerCase())
+    const matchesCat = filterCategory === 'All' || f.category === filterCategory
+    return matchesSearch && matchesCat
+  })
+
   return (
     <main className="section menu-page">
       <div className="container">
         <div className="menu-header">
           <div className="section-title fancy-title neon-title">Our Menu</div>
           <p className="muted tagline">Bakery delights & Fast Food favorites</p>
-          <div className="title-decor neon-accent" aria-hidden="true"></div>
         </div>
 
-        {loading && <div className="small">Loading menu...</div>}
+        {/* Filter Bar */}
+        <div className="menu-filters" style={{ marginBottom: '30px' }}>
+            <div className="form-row" style={{ alignItems: 'flex-end'}}>
+                <div style={{ flex: 1 }}>
+                    <label>Search Menu</label>
+                    <input 
+                        className="input" 
+                        placeholder="Search for momos, cakes..." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                </div>
+                <div style={{ flex: 1 }}>
+                    <label>Category</label>
+                    <select 
+                        className="input" 
+                        value={filterCategory} 
+                        onChange={(e) => setFilterCategory(e.target.value)}
+                    >
+                        {allCategories.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        {loading && <div className="small text-center">Loading menu...</div>}
+        
         {!loading && (
           <div className="menu-board grid-2">
-            <BakeryMenuBoard onAdd={onAdd} products={products} />
-            <FastFoodMenuBoard onAdd={onAdd} fastFood={fastFood} />
+            {/* Show Bakery Section only if there are items */}
+            {filteredProducts.length > 0 && (
+                <BakeryMenuBoard onAdd={onAdd} products={filteredProducts} />
+            )}
+            
+            {/* Show Fast Food Section only if there are items */}
+            {filteredFastFood.length > 0 && (
+                <FastFoodMenuBoard onAdd={onAdd} fastFood={filteredFastFood} />
+            )}
+
+            {filteredProducts.length === 0 && filteredFastFood.length === 0 && (
+                <div className="text-center" style={{ gridColumn: '1/-1', padding: '20px' }}>
+                    No items found matching your search.
+                </div>
+            )}
           </div>
         )}
       </div>
     </main>
-  )
-}
-
-function FastFoodSection({ onAdd }) {
-  const [category, setCategory] = useState('All')
-  const [query, setQuery] = useState('')
-  const [sort, setSort] = useState('none')
-  const ffData = getFastFoodItemsData()
-  const categories = ['All', ...Array.from(new Set(ffData.map(p=>p.category)))]
-  let shown = ffData.filter(p=> category==='All' ? true : p.category===category)
-  if (query.trim()) {
-    const q = query.toLowerCase()
-    shown = shown.filter(p=> p.name.toLowerCase().includes(q))
-  }
-  if (sort === 'price_asc') shown = shown.slice().sort((a,b)=> (a.prices.full ?? a.prices.half) - (b.prices.full ?? b.prices.half))
-  if (sort === 'price_desc') shown = shown.slice().sort((a,b)=> (b.prices.full ?? b.prices.half) - (a.prices.full ?? a.prices.half))
-  return (
-    <section>
-      <div className="mb-3">
-        <div className="tabs">
-          {categories.map(c=> (
-            <div key={c} className={`tab ${c===category? 'active':''}`} onClick={()=> setCategory(c)}>{c}</div>
-          ))}
-        </div>
-      </div>
-      <div className="form-row mb-3">
-        <div>
-          <label>Search</label>
-          <input className="input" placeholder="e.g., momos, chowmein" value={query} onChange={e=> setQuery(e.target.value)} />
-        </div>
-        <div>
-          <label>Sort</label>
-          <select className="input" value={sort} onChange={e=> setSort(e.target.value)}>
-            <option value="none">Recommended</option>
-            <option value="price_asc">Price: Low to High</option>
-            <option value="price_desc">Price: High to Low</option>
-          </select>
-        </div>
-      </div>
-      <div className="grid">
-        {shown.map((p)=> <FastFoodCard key={p.id} item={p} onAdd={onAdd} />)}
-      </div>
-    </section>
   )
 }
 
@@ -528,10 +455,10 @@ function BakeryMenuBoard({ onAdd, products }) {
     }
     return Array.from(map.entries())
   }, [products])
+
   return (
     <section className="menu-column">
-      <div className="neon-section-title">Bakery Menu</div>
-      {grouped.length === 0 && <div className="small">No products available</div>}
+      <div className="neon-section-title">Bakery Items</div>
       {grouped.map(([cat, items])=> (
         <div className="menu-category" key={cat}>
           <div className="category-title neon-sub">{cat}</div>
@@ -562,10 +489,10 @@ function FastFoodMenuBoard({ onAdd, fastFood }) {
     }
     return Array.from(map.entries())
   }, [fastFood])
+
   return (
     <section className="menu-column">
       <div className="neon-section-title">Fast Food Corner</div>
-      {grouped.length === 0 && <div className="small">No items available</div>}
       {grouped.map(([cat, items])=> (
         <div className="menu-category" key={cat}>
           <div className="category-title neon-sub">{cat}</div>
@@ -588,6 +515,8 @@ function FastFoodMenuBoard({ onAdd, fastFood }) {
     </section>
   )
 }
+
+// --- ADMIN ---
 
 function AdminLogin({ onLogin }) {
   const [username, setUsername] = useState('')
@@ -648,12 +577,9 @@ function AdminDashboard() {
 
   const resetEditing = () => setEditing(null)
 
-  // Products form state
   const [pForm, setPForm] = useState({ id: '', name: '', description: '', price: '', category: '', image: '' })
-  // FastFood form state
   const [fForm, setFForm] = useState({ id: '', name: '', category: '', image: '', half: '', full: '' })
 
-  // Fetch data from backend
   useEffect(() => {
     fetchProducts()
     fetchFastFood()
@@ -807,7 +733,7 @@ function AdminDashboard() {
   }
 
   if (loading && prodList.length === 0 && ffList.length === 0) {
-    return <main className="section"><div className="container">Loading...</div></main>
+    return <main className="section"><div className="container">Loading dashboard...</div></main>
   }
 
   return (
@@ -832,7 +758,7 @@ function AdminDashboard() {
                 </div>
                 <div className="form-row">
                   <div><label>Price*</label><input className="input" type="number" value={pForm.price} onChange={e => setPForm({ ...pForm, price: e.target.value })} disabled={loading} /></div>
-                  <div><label>Image URL</label><input className="input" value={pForm.image} onChange={e => setPForm({ ...pForm, image: e.target.value })} disabled={loading} /></div>
+                  <div><label>Image URL</label><input className="input" value={pForm.image} onChange={e => setPForm({ ...pForm, image: e.target.value })} disabled={loading} placeholder="e.g. /images/cake_1.jpg or https://..." /></div>
                 </div>
                 <div><label>Description</label><textarea rows="3" className="input" value={pForm.description} onChange={e => setPForm({ ...pForm, description: e.target.value })} disabled={loading} /></div>
                 <div className="flex gap-2 mt-2">
@@ -843,7 +769,7 @@ function AdminDashboard() {
             </div>
             {prodList.map(p => (
               <div className="card" key={p.id}>
-                {p.image && <img src={p.image} alt={p.name} loading="lazy" crossOrigin="anonymous" referrerPolicy="no-referrer" />}
+                {p.image && <img src={p.image} alt={p.name} loading="lazy" crossOrigin="anonymous" referrerPolicy="no-referrer" onError={(e)=>e.target.src='https://placehold.co/400x300'} />}
                 <div className="card-body">
                   <div className="chip" aria-label={p.category}>{p.category}</div>
                   <div className="card-title">{p.name}</div>
@@ -871,7 +797,7 @@ function AdminDashboard() {
                   <div><label>Half Price</label><input className="input" type="number" value={fForm.half} onChange={e => setFForm({ ...fForm, half: e.target.value })} disabled={loading} /></div>
                   <div><label>Full Price</label><input className="input" type="number" value={fForm.full} onChange={e => setFForm({ ...fForm, full: e.target.value })} disabled={loading} /></div>
                 </div>
-                <div><label>Image URL</label><input className="input" value={fForm.image} onChange={e => setFForm({ ...fForm, image: e.target.value })} disabled={loading} /></div>
+                <div><label>Image URL</label><input className="input" value={fForm.image} onChange={e => setFForm({ ...fForm, image: e.target.value })} disabled={loading} placeholder="e.g. https://..." /></div>
                 <div className="flex gap-2 mt-2">
                   <button className="btn" onClick={saveFastFood} disabled={loading}>{editing ? 'Save' : 'Add'}</button>
                   {editing && <button className="btn outline" onClick={resetEditing} disabled={loading}>Cancel</button>}
@@ -880,7 +806,7 @@ function AdminDashboard() {
             </div>
             {ffList.map(f => (
               <div className="card" key={f.id}>
-                {f.image && <img src={f.image} alt={f.name} loading="lazy" crossOrigin="anonymous" referrerPolicy="no-referrer" />}
+                {f.image && <img src={f.image} alt={f.name} loading="lazy" crossOrigin="anonymous" referrerPolicy="no-referrer" onError={(e)=>e.target.src='https://placehold.co/400x300'} />}
                 <div className="card-body">
                   <div className="chip" aria-label={f.category}>{f.category}</div>
                   <div className="card-title">{f.name}</div>
@@ -1015,13 +941,25 @@ function App() {
   const [dark, setDark] = useState(false)
   const [cart, setCart] = useState([])
   const [cartOpen, setCartOpen] = useState(false)
+  
+  // Simple toast notification
+  const [toast, setToast] = useState(null)
+
   useEffect(()=> { document.documentElement.classList.toggle('dark', dark) }, [dark])
-  const onAdd = (item)=> setCart((c)=> [...c, item])
+  
+  const onAdd = (item)=> {
+      setCart((c)=> [...c, item])
+      setToast(`Added ${item.name} to cart`)
+      setTimeout(()=> setToast(null), 2000)
+  }
+  
   const removeFromCart = (idx)=> setCart((c)=> c.filter((_, i)=> i!==idx))
   const total = cart.reduce((sum, i)=> sum + i.price, 0)
+  
   return (
     <>
       <Header navigate={navigate} page={page} toggleDark={()=> setDark(d=> !d)} cartCount={cart.length} onOpenCart={()=> setCartOpen(true)} />
+      
       {page===PAGES.home && <Home navigate={navigate} />}
       {page===PAGES.menu && <Menu onAdd={onAdd} />}
       {page===PAGES.gallery && <Gallery />}
@@ -1029,6 +967,14 @@ function App() {
       {page===PAGES.about && <About />}
       {page===PAGES.contact && <Contact />}
       {page===PAGES.admin && <Admin />}
+      
+      {/* Toast Notification */}
+      {toast && (
+          <div style={{ position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)', background: '#333', color: '#fff', padding: '10px 20px', borderRadius: '30px', zIndex: 3000, boxShadow: '0 4px 10px rgba(0,0,0,0.2)' }}>
+              {toast}
+          </div>
+      )}
+
       {cartOpen && (
         <>
           <div className="drawer-backdrop" onClick={()=> setCartOpen(false)} />
