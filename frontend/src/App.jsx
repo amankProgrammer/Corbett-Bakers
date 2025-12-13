@@ -8,6 +8,18 @@ const PAGES = { home: 'home', menu: 'menu', order: 'order', gallery: 'gallery', 
 // Build gallery from local images placed in public/images
 const GALLERY_IMAGES = Array.from({ length: 16 }, (_, i) => `/images/cake_${i+1}.jpg`)
 
+// --- HELPERS ---
+
+// Helper to convert file to Base64 string for DB storage
+const convertToBase64 = (file) => {
+  return new Promise((resolve, reject) => {
+    const fileReader = new FileReader();
+    fileReader.readAsDataURL(file);
+    fileReader.onload = () => resolve(fileReader.result);
+    fileReader.onerror = (error) => reject(error);
+  });
+};
+
 // --- SHARED COMPONENTS ---
 
 function Gallery() {
@@ -264,6 +276,7 @@ function Home({ navigate }) {
               <button className="btn" onClick={()=>navigate(PAGES.order)}>Order Now</button>
               <button className="btn outline" onClick={()=>navigate(PAGES.menu)}>View Menu</button>
             </div>
+            <div className="mt-3 small">Follow us on <a href="https://instagram.com" target="_blank" rel="noreferrer">Instagram</a></div>
           </div>
           <div>
               <div className="carousel" style={{ position: 'relative', overflow: 'hidden', width: '100%', height: '400px', borderRadius: '16px' }}>
@@ -365,14 +378,12 @@ function Menu({ onAdd }) {
     loadData()
   }, [])
 
-  // Collect all unique categories
   const allCategories = useMemo(() => {
     const pCats = products.map(p => p.category)
     const fCats = fastFood.map(f => f.category)
     return ['All', ...new Set([...pCats, ...fCats])]
   }, [products, fastFood])
 
-  // Filter Logic
   const filteredProducts = products.filter(p => {
     const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesCat = filterCategory === 'All' || p.category === filterCategory
@@ -422,16 +433,12 @@ function Menu({ onAdd }) {
         
         {!loading && (
           <div className="menu-board grid-2">
-            {/* Show Bakery Section only if there are items */}
             {filteredProducts.length > 0 && (
                 <BakeryMenuBoard onAdd={onAdd} products={filteredProducts} />
             )}
-            
-            {/* Show Fast Food Section only if there are items */}
             {filteredFastFood.length > 0 && (
                 <FastFoodMenuBoard onAdd={onAdd} fastFood={filteredFastFood} />
             )}
-
             {filteredProducts.length === 0 && filteredFastFood.length === 0 && (
                 <div className="text-center" style={{ gridColumn: '1/-1', padding: '20px' }}>
                     No items found matching your search.
@@ -444,7 +451,6 @@ function Menu({ onAdd }) {
   )
 }
 
-// Bakery menu board: grouped by category with dot leaders and aligned prices
 function BakeryMenuBoard({ onAdd, products }) {
   const grouped = useMemo(()=> {
     const map = new Map()
@@ -478,7 +484,6 @@ function BakeryMenuBoard({ onAdd, products }) {
   )
 }
 
-// Fast food menu board: grouped by category with half/full prices
 function FastFoodMenuBoard({ onAdd, fastFood }) {
   const grouped = useMemo(()=> {
     const map = new Map()
@@ -620,6 +625,32 @@ function AdminDashboard() {
     setFForm({ id: f.id, name: f.name, category: f.category, image: f.image || '', half: String(f.prices?.half || ''), full: String(f.prices?.full || '') })
   }
 
+  // --- IMAGE UPLOAD HANDLER ---
+  const handleFileUpload = async (e, type) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // 2MB Limit Check
+    const maxSize = 2 * 1024 * 1024; // 2MB
+    if (file.size > maxSize) {
+        alert("⚠️ File is too large! Please choose an image under 2MB.");
+        e.target.value = null; // Clear input
+        return;
+    }
+
+    try {
+      const base64 = await convertToBase64(file);
+      if (type === 'product') {
+        setPForm({ ...pForm, image: base64 });
+      } else {
+        setFForm({ ...fForm, image: base64 });
+      }
+    } catch (err) {
+      console.error("Error converting file", err);
+      alert("Error processing image");
+    }
+  };
+
   const saveProduct = async () => {
     if (!pForm.name || !pForm.price || !pForm.category) {
       setMessage('Please fill all required fields')
@@ -758,7 +789,14 @@ function AdminDashboard() {
                 </div>
                 <div className="form-row">
                   <div><label>Price*</label><input className="input" type="number" value={pForm.price} onChange={e => setPForm({ ...pForm, price: e.target.value })} disabled={loading} /></div>
-                  <div><label>Image URL</label><input className="input" value={pForm.image} onChange={e => setPForm({ ...pForm, image: e.target.value })} disabled={loading} placeholder="e.g. /images/cake_1.jpg or https://..." /></div>
+                  
+                  {/* Image Upload for Products */}
+                  <div>
+                    <label>Upload Image</label>
+                    <input type="file" accept="image/*" className="input" onChange={(e) => handleFileUpload(e, 'product')} disabled={loading} />
+                    <input className="input mt-1" placeholder="Or paste image URL" value={pForm.image} onChange={e => setPForm({ ...pForm, image: e.target.value })} disabled={loading} />
+                    {pForm.image && <img src={pForm.image} alt="Preview" style={{ height: '50px', marginTop: '5px' }} />}
+                  </div>
                 </div>
                 <div><label>Description</label><textarea rows="3" className="input" value={pForm.description} onChange={e => setPForm({ ...pForm, description: e.target.value })} disabled={loading} /></div>
                 <div className="flex gap-2 mt-2">
@@ -797,7 +835,15 @@ function AdminDashboard() {
                   <div><label>Half Price</label><input className="input" type="number" value={fForm.half} onChange={e => setFForm({ ...fForm, half: e.target.value })} disabled={loading} /></div>
                   <div><label>Full Price</label><input className="input" type="number" value={fForm.full} onChange={e => setFForm({ ...fForm, full: e.target.value })} disabled={loading} /></div>
                 </div>
-                <div><label>Image URL</label><input className="input" value={fForm.image} onChange={e => setFForm({ ...fForm, image: e.target.value })} disabled={loading} placeholder="e.g. https://..." /></div>
+                
+                {/* Image Upload for Fast Food */}
+                <div>
+                    <label>Upload Image</label>
+                    <input type="file" accept="image/*" className="input" onChange={(e) => handleFileUpload(e, 'fastfood')} disabled={loading} />
+                    <input className="input mt-1" placeholder="Or paste image URL" value={fForm.image} onChange={e => setFForm({ ...fForm, image: e.target.value })} disabled={loading} />
+                    {fForm.image && <img src={fForm.image} alt="Preview" style={{ height: '50px', marginTop: '5px' }} />}
+                </div>
+
                 <div className="flex gap-2 mt-2">
                   <button className="btn" onClick={saveFastFood} disabled={loading}>{editing ? 'Save' : 'Add'}</button>
                   {editing && <button className="btn outline" onClick={resetEditing} disabled={loading}>Cancel</button>}
@@ -1005,7 +1051,7 @@ function App() {
           </aside>
         </>
       )}
-      <a className="fab" href="https://wa.me/919999999999" target="_blank" rel="noreferrer">Chat on WhatsApp</a>
+      <a className="fab" href="https://wa.me/918433138312" target="_blank" rel="noreferrer">Chat on WhatsApp</a>
       <Footer />
     </>
   )
