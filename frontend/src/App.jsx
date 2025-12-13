@@ -20,11 +20,83 @@ const convertToBase64 = (file) => {
   });
 };
 
+// --- COMPONENT: PRODUCT DETAILS MODAL ---
+function ProductDetailsModal({ product, onClose, onAdd }) {
+  if (!product) return null;
+
+  const hasHalf = product.prices && typeof product.prices.half === 'number';
+  const hasFull = product.prices && typeof product.prices.full === 'number';
+
+  return (
+    <div className="drawer-backdrop" onClick={onClose} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3000 }}>
+      <div 
+        className="card" 
+        style={{ width: '90%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto', background: '#fff', position: 'relative', cursor: 'default' }}
+        onClick={e => e.stopPropagation()} 
+      >
+        <button 
+          onClick={onClose}
+          style={{ position: 'absolute', top: '15px', right: '20px', background: 'rgba(0,0,0,0.5)', color:'white', border: 'none', borderRadius:'50%', width:'40px', height:'40px', fontSize: '1.5rem', cursor: 'pointer', zIndex: 10, display:'flex', alignItems:'center', justifyContent:'center' }}
+        >
+          ×
+        </button>
+        
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0', padding: '0' }}>
+           {/* Modal Image - Large */}
+           <div style={{ width: '100%', height: '350px', backgroundColor: '#f9f9f9' }}>
+             <img 
+               src={product.image} 
+               alt={product.name} 
+               style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+               onError={(e) => e.target.src = 'https://placehold.co/800x600?text=No+Image'}
+             />
+           </div>
+
+           {/* Modal Content */}
+           <div style={{ padding: '30px' }}>
+             <div className="chip" style={{ marginBottom: '10px' }}>{product.category}</div>
+             <h2 className="card-title" style={{ fontSize: '1.8rem', marginBottom: '10px' }}>{product.name}</h2>
+             
+             {/* Price Display */}
+             <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#D7A86E', marginBottom: '20px' }}>
+                {product.price ? `₹ ${product.price}` : ''}
+                {hasHalf && `Half: ₹${product.prices.half}  `} 
+                {hasFull && ` • Full: ₹${product.prices.full}`}
+             </div>
+
+             <h4 style={{ marginBottom: '8px' }}>Description</h4>
+             <p style={{ lineHeight: '1.6', color: '#555', marginBottom: '30px' }}>
+               {product.description || product.desc || "No description available for this item."}
+             </p>
+
+             {/* Action Buttons */}
+             <div className="card-actions">
+                {product.price && (
+                   <button className="btn" onClick={() => { onAdd(product); onClose(); }}>Add to Cart (₹ {product.price})</button>
+                )}
+                
+                {hasHalf && (
+                  <button className="btn outline" onClick={()=> { onAdd({ ...product, name: product.name + ' (Half)', price: product.prices.half }); onClose(); }}>
+                    Add Half (₹ {product.prices.half})
+                  </button>
+                )}
+                {hasFull && (
+                  <button className="btn" onClick={()=> { onAdd({ ...product, name: product.name + ' (Full)', price: product.prices.full }); onClose(); }}>
+                    Add Full (₹ {product.prices.full})
+                  </button>
+                )}
+             </div>
+           </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // --- SHARED COMPONENTS ---
 
 function Gallery() {
   const [selectedImage, setSelectedImage] = useState(null)
-
   return (
     <main className="section">
       <div className="container">
@@ -32,56 +104,20 @@ function Gallery() {
         <p className="muted" style={{ marginTop: '-10px', marginBottom: '20px' }}>
           A glimpse into our kitchen and happy customers.
         </p>
-        
         <div className="grid">
           {GALLERY_IMAGES.map((src, i) => (
-            <div 
-              className="card" 
-              key={i}
-              onClick={() => setSelectedImage(src)}
-              style={{ cursor: 'pointer' }}
-              title="Click to zoom"
-            >
+            <div className="card" key={i} onClick={() => setSelectedImage(src)} style={{ cursor: 'pointer' }}>
               <div className="card-image">
-                <img 
-                  src={src} 
-                  alt={`Gallery item ${i + 1}`} 
-                  loading="lazy" 
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', aspectRatio: '1/1' }}
-                  onError={(e) => {
-                      e.target.src = 'https://placehold.co/600x600/fde2e4/6b4f3b?text=Delicious' 
-                  }}
-                />
+                <img src={src} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', aspectRatio: '1/1' }} 
+                     onError={(e) => e.target.src = 'https://placehold.co/600x600/fde2e4/6b4f3b?text=Delicious'} />
               </div>
             </div>
           ))}
         </div>
-
         {selectedImage && (
-          <div 
-            className="lightbox-overlay" 
-            onClick={() => setSelectedImage(null)}
-            style={{
-              position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-              backgroundColor: 'rgba(0, 0, 0, 0.9)', display: 'flex', alignItems: 'center',
-              justifyContent: 'center', zIndex: 2000, cursor: 'zoom-out'
-            }}
-          >
-            <button 
-              onClick={() => setSelectedImage(null)}
-              style={{
-                position: 'absolute', top: '20px', right: '30px', background: 'transparent',
-                border: 'none', color: '#fff', fontSize: '2rem', cursor: 'pointer'
-              }}
-            >
-              ×
-            </button>
-            <img 
-              src={selectedImage} 
-              alt="Enlarged view" 
-              style={{ maxWidth: '90%', maxHeight: '90%', borderRadius: '8px', cursor: 'default' }}
-              onClick={(e) => e.stopPropagation()} 
-            />
+          <div className="lightbox-overlay" onClick={() => setSelectedImage(null)} style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, cursor: 'zoom-out' }}>
+             <button onClick={() => setSelectedImage(null)} style={{ position: 'absolute', top: '20px', right: '30px', background: 'transparent', border: 'none', color: '#fff', fontSize: '2rem', cursor: 'pointer' }}>×</button>
+            <img src={selectedImage} style={{ maxWidth: '90%', maxHeight: '90%', borderRadius: '8px' }} onClick={(e) => e.stopPropagation()} />
           </div>
         )}
       </div>
@@ -112,10 +148,7 @@ function Header({ navigate, page, toggleDark, cartCount, onOpenCart }) {
               <circle cx="16.5" cy="9.5" r="1.2" fill="#F7C7D8"/>
               <circle cx="9" cy="9" r="1" fill="#F7C7D8"/>
             </svg>
-            <div>
-              Corbett Bakers
-              <small>Homemade happiness</small>
-            </div>
+            <div>Corbett Bakers <small>Homemade happiness</small></div>
           </div>
         </div>
         <nav className="nav">
@@ -127,7 +160,6 @@ function Header({ navigate, page, toggleDark, cartCount, onOpenCart }) {
           <a href="#/contact" onClick={(e)=>{e.preventDefault();navigate(PAGES.contact)}}>Contact</a>
           <button className="btn outline" onClick={toggleDark} title="Toggle dark mode">Dark/Light</button>
           <button className="btn outline" onClick={onOpenCart} title="View cart">Cart ({cartCount})</button>
-          <a className="btn" href="#/order" onClick={(e)=>{e.preventDefault();navigate(PAGES.order)}}>Order Now</a>
         </nav>
       </div>
     </header>
@@ -142,91 +174,75 @@ function Footer() {
           <h4>Corbett Bakers</h4>
           <p className="small">Baked with Love, Served Fresh. Homemade happiness in every bite.</p>
           <div className="small">📍 Bannakhera, Uttarakhand • ☎️ +91 99999 99999</div>
-          <div className="small">Follow: <a href="https://instagram.com" target="_blank" rel="noreferrer">Instagram</a> • <a href="https://facebook.com" target="_blank" rel="noreferrer">Facebook</a></div>
         </div>
         <div>
           <h4>Hours</h4>
           <div className="small">Mon–Sun: 8:00am – 9:00pm</div>
           <div className="small">Fresh bakes daily</div>
         </div>
-        <div>
-          <h4>Newsletter</h4>
-          <input className="input" placeholder="Email address" aria-label="Email address" />
-          <button className="btn mt-2" onClick={()=>alert('Subscribed!')}>Subscribe</button>
-        </div>
       </div>
     </footer>
   )
 }
 
-// --- DATA FETCHING HELPERS ---
+// --- API HELPERS ---
 async function fetchProductsFromAPI() {
-  try {
-    const response = await fetch(`${API_URL}/api/products`)
-    if (!response.ok) throw new Error('Failed to fetch products')
-    return await response.json()
-  } catch (err) {
-    console.error('Error fetching products:', err)
-    return []
-  }
+  try { return await (await fetch(`${API_URL}/api/products`)).json() } catch { return [] }
 }
-
 async function fetchFastFoodFromAPI() {
-  try {
-    const response = await fetch(`${API_URL}/api/fastfood`)
-    if (!response.ok) throw new Error('Failed to fetch fast food items')
-    return await response.json()
-  } catch (err) {
-    console.error('Error fetching fast food:', err)
-    return []
-  }
+  try { return await (await fetch(`${API_URL}/api/fastfood`)).json() } catch { return [] }
 }
 
-// --- CARDS ---
+// --- CARDS WITH FIXED DIMENSIONS ---
 
-function FastFoodCard({ item, onAdd }) {
+function FastFoodCard({ item, onView }) {
   const hasHalf = item.prices && typeof item.prices.half === 'number'
-  const hasFull = item.prices && typeof item.prices.full === 'number'
   return (
-    <div className="card">
-      <img src={item.image} alt={item.name} loading="lazy" crossOrigin="anonymous" referrerPolicy="no-referrer" 
-           onError={(e)=>e.target.src='https://placehold.co/600x400?text=No+Image'}/>
+    <div className="card product-card" onClick={() => onView(item)} style={{ cursor: 'pointer' }}>
+      <div className="card-image" style={{ height: '200px', width: '100%', overflow: 'hidden' }}>
+        <img 
+            src={item.image} 
+            alt={item.name} 
+            loading="lazy" 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            onError={(e)=>e.target.src='https://placehold.co/600x400?text=No+Image'}
+        />
+      </div>
       <div className="card-body">
-        <div className="chip" aria-label={item.category}>{item.category}</div>
+        <div className="chip">{item.category}</div>
         <div className="card-title">{item.name}</div>
-        <div className="card-desc">Freshly made to order • Choose half or full</div>
-        <div className="card-actions">
-          {hasHalf && (
-            <button className="btn outline" onClick={()=> onAdd({ ...item, name: item.name + ' (Half)', price: item.prices.half })}>
-              Half ₹ {item.prices.half}
-            </button>
-          )}
-          {hasFull && (
-            <button className="btn" onClick={()=> onAdd({ ...item, name: item.name + ' (Full)', price: item.prices.full })}>
-              Full ₹ {item.prices.full}
-            </button>
-          )}
+        <div className="card-desc" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', color: '#888' }}>
+            Freshly made to order...
         </div>
+        <div className="card-price" style={{ marginTop: 'auto' }}>
+            {hasHalf ? `From ₹ ${item.prices.half}` : `₹ ${item.prices.full}`}
+        </div>
+        <button className="btn outline mt-2" style={{ width: '100%' }}>View Options</button>
       </div>
     </div>
   )
 }
 
-function ProductCard({ item, onAdd }) {
+function ProductCard({ item, onView }) {
   return (
-    <div className="card">
-      <div className="sticker"><div><small>only</small> ₹ {item.price}</div></div>
-      <img src={item.image} alt={item.name} loading="lazy" crossOrigin="anonymous" referrerPolicy="no-referrer" 
-           onError={(e)=>e.target.src='https://placehold.co/600x400?text=No+Image'}/>
-      <div className="card-body">
-        <div className="chip" aria-label={item.category}>{item.category}</div>
+    <div className="card product-card" onClick={() => onView(item)} style={{ cursor: 'pointer' }}>
+      <div className="card-image" style={{ height: '200px', width: '100%', overflow: 'hidden' }}>
+         <img 
+            src={item.image} 
+            alt={item.name} 
+            loading="lazy" 
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            onError={(e)=>e.target.src='https://placehold.co/600x400?text=No+Image'}
+         />
+      </div>
+      <div className="card-body" style={{ display: 'flex', flexDirection: 'column' }}>
+        <div className="chip">{item.category}</div>
         <div className="card-title">{item.name}</div>
-        <div className="card-desc">{item.desc || item.description}</div>
-        <div className="card-price">₹ {item.price}</div>
-        <div className="card-actions">
-          <button className="btn" onClick={()=>onAdd(item)}>Add to Cart</button>
-          <a className="btn outline" href="#/order">Pre-order</a>
+        <div className="card-desc" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', marginBottom: '10px' }}>
+            {item.description || item.desc}
         </div>
+        <div className="card-price" style={{ marginTop: 'auto' }}>₹ {item.price}</div>
+        <button className="btn outline mt-2" style={{ width: '100%' }}>View Details</button>
       </div>
     </div>
   )
@@ -234,7 +250,7 @@ function ProductCard({ item, onAdd }) {
 
 // --- PAGES ---
 
-function Home({ navigate }) {
+function Home({ navigate, onViewProduct }) {
   const [products, setProducts] = useState([])
   const [fastFood, setFastFood] = useState([])
   const [loading, setLoading] = useState(true)
@@ -254,13 +270,8 @@ function Home({ navigate }) {
   useEffect(() => {
     const loadData = async () => {
       setLoading(true)
-      const [productsData, fastFoodData] = await Promise.all([
-        fetchProductsFromAPI(),
-        fetchFastFoodFromAPI()
-      ])
-      setProducts(productsData)
-      setFastFood(fastFoodData)
-      setLoading(false)
+      const [p, f] = await Promise.all([fetchProductsFromAPI(), fetchFastFoodFromAPI()])
+      setProducts(p); setFastFood(f); setLoading(false)
     }
     loadData()
   }, [])
@@ -270,39 +281,24 @@ function Home({ navigate }) {
       <section className="hero">
         <div className="container hero-inner">
           <div>
-            <h1>Baked with Love, Served Fresh</h1>
-            <p>Warm, cozy, and inviting bakes for every sweet moment. From cakes to cookies, we craft homemade happiness daily. <span className="script">Fresh from our oven.</span></p>
+            <h1>Baked with Love</h1>
+            <p>Warm, cozy, and inviting bakes for every sweet moment.</p>
             <div className="hero-actions">
               <button className="btn" onClick={()=>navigate(PAGES.order)}>Order Now</button>
               <button className="btn outline" onClick={()=>navigate(PAGES.menu)}>View Menu</button>
             </div>
-            <div className="mt-3 small">Follow us on <a href="https://instagram.com" target="_blank" rel="noreferrer">Instagram</a></div>
           </div>
-          <div>
-              <div className="carousel" style={{ position: 'relative', overflow: 'hidden', width: '100%', height: '400px', borderRadius: '16px' }}>
-                <div className="carousel-track" style={{ display: 'flex', height: '100%', transition: 'transform 0.5s ease-in-out', transform: `translateX(-${index*100}%)` }}>
-                  {slides.map((s, i)=> (
-                    <div className="carousel-slide" key={i} style={{ minWidth: '100%', height: '100%', position: 'relative' }}>
-                      <div className="hero-card" style={{ width: '100%', height: '100%' }}>
-                        <img 
-                          src={s.src} 
-                          alt={s.caption} 
-                          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} 
-                          onError={(e)=>e.target.src='https://placehold.co/800x400?text=Corbett+Bakers'}
-                        />
-                        <div className="caption" style={{ position: 'absolute', bottom: '20px', left: '20px', background: 'rgba(255,255,255,0.9)', padding: '8px 16px', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 'bold' }}>
-                          {s.caption}
-                        </div>
-                      </div>
+          <div className="carousel" style={{ position: 'relative', overflow: 'hidden', width: '100%', height: '400px', borderRadius: '16px' }}>
+              <div className="carousel-track" style={{ display: 'flex', height: '100%', transition: 'transform 0.5s ease-in-out', transform: `translateX(-${index*100}%)` }}>
+                {slides.map((s, i)=> (
+                  <div className="carousel-slide" key={i} style={{ minWidth: '100%', height: '100%', position: 'relative' }}>
+                    <div className="hero-card" style={{ width: '100%', height: '100%' }}>
+                      <img src={s.src} alt={s.caption} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} onError={(e)=>e.target.src='https://placehold.co/800x400?text=Corbett+Bakers'} />
+                      <div className="caption" style={{ position: 'absolute', bottom: '20px', left: '20px', background: 'rgba(255,255,255,0.9)', padding: '8px 16px', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 'bold' }}>{s.caption}</div>
                     </div>
-                  ))}
-                </div>
-                <div className="carousel-nav">
-                  {slides.map((_, i)=> (
-                    <div key={i} className={`dot ${i===index? 'active':''}`} onClick={()=> setIndex(i)} />
-                  ))}
-                </div>
-            </div>
+                  </div>
+                ))}
+              </div>
           </div>
         </div>
       </section>
@@ -310,9 +306,9 @@ function Home({ navigate }) {
       <section className="section">
         <div className="container">
           <div className="section-title">Best Sellers</div>
-          {loading && <div className="text-center">Loading fresh bakes...</div>}
+          {loading && <div className="text-center">Loading...</div>}
           <div className="grid">
-            {!loading && products.slice(0,4).map((p)=> <ProductCard key={p.id} item={p} onAdd={()=>{}} />)}
+            {!loading && products.slice(0,4).map((p)=> <ProductCard key={p.id} item={p} onView={onViewProduct} />)}
           </div>
         </div>
       </section>
@@ -320,34 +316,17 @@ function Home({ navigate }) {
       <section className="section accent">
         <div className="container">
           <div className="section-title">Birthday Specials</div>
-          <p className="muted" style={{marginTop:'-8px'}}>Theme cakes, photo cakes, and party boxes—made to celebrate.</p>
-          {loading && <div className="text-center">Loading specials...</div>}
           <div className="grid">
-            {!loading && products.filter(p=> p.category==='Birthday').slice(0, 4).map((p)=> (
-              <ProductCard key={p.id} item={p} onAdd={()=>{}} />
-            ))}
-          </div>
-          <div className="mt-2">
-            <a className="btn" href="#/menu" onClick={(e)=>{e.preventDefault();navigate(PAGES.menu)}}>See Full Birthday Menu</a>
-          </div>
-          <div className="party-strip mt-3">
-            <div className="party-chip">🎈 Balloons</div>
-            <div className="party-chip">🎀 Ribbons</div>
-            <div className="party-chip">🕯️ Candles</div>
-            <div className="party-chip">🎉 Poppers</div>
+            {!loading && products.filter(p=> p.category==='Birthday').slice(0, 4).map((p)=> <ProductCard key={p.id} item={p} onView={onViewProduct} />)}
           </div>
         </div>
       </section>
 
       <section className="section">
         <div className="container">
-          <div className="section-title">Quick Bites & Snacks</div>
-          <p className="muted" style={{marginTop:'-8px'}}>Perfect for tea time, office breaks, or anytime cravings.</p>
-          {loading && <div className="text-center">Loading snacks...</div>}
+          <div className="section-title">Quick Bites</div>
           <div className="grid">
-            {!loading && fastFood.slice(0, 8).map((ff)=> (
-               <FastFoodCard key={ff.id} item={ff} onAdd={()=>{}} />
-            ))}
+            {!loading && fastFood.slice(0, 8).map((ff)=> <FastFoodCard key={ff.id} item={ff} onView={onViewProduct} />)}
           </div>
         </div>
       </section>
@@ -355,95 +334,52 @@ function Home({ navigate }) {
   )
 }
 
-function Menu({ onAdd }) {
+function Menu({ onViewProduct, onAdd }) {
   const [products, setProducts] = useState([])
   const [fastFood, setFastFood] = useState([])
   const [loading, setLoading] = useState(true)
-
-  // Search and Filter State
   const [searchTerm, setSearchTerm] = useState('')
   const [filterCategory, setFilterCategory] = useState('All')
 
   useEffect(() => {
-    const loadData = async () => {
-      setLoading(true)
-      const [productsData, fastFoodData] = await Promise.all([
-        fetchProductsFromAPI(),
-        fetchFastFoodFromAPI()
-      ])
-      setProducts(productsData)
-      setFastFood(fastFoodData)
-      setLoading(false)
+    const load = async () => {
+      setLoading(true);
+      const [p, f] = await Promise.all([fetchProductsFromAPI(), fetchFastFoodFromAPI()])
+      setProducts(p); setFastFood(f); setLoading(false)
     }
-    loadData()
+    load()
   }, [])
 
-  const allCategories = useMemo(() => {
-    const pCats = products.map(p => p.category)
-    const fCats = fastFood.map(f => f.category)
-    return ['All', ...new Set([...pCats, ...fCats])]
-  }, [products, fastFood])
-
-  const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCat = filterCategory === 'All' || p.category === filterCategory
-    return matchesSearch && matchesCat
-  })
-
-  const filteredFastFood = fastFood.filter(f => {
-    const matchesSearch = f.name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCat = filterCategory === 'All' || f.category === filterCategory
-    return matchesSearch && matchesCat
-  })
+  const allCategories = useMemo(() => ['All', ...new Set([...products.map(p=>p.category), ...fastFood.map(f=>f.category)])], [products, fastFood])
+  
+  const filteredProducts = products.filter(p => (filterCategory==='All' || p.category===filterCategory) && p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+  const filteredFastFood = fastFood.filter(f => (filterCategory==='All' || f.category===filterCategory) && f.name.toLowerCase().includes(searchTerm.toLowerCase()))
 
   return (
     <main className="section menu-page">
       <div className="container">
-        <div className="menu-header">
-          <div className="section-title fancy-title neon-title">Our Menu</div>
-          <p className="muted tagline">Bakery delights & Fast Food favorites</p>
-        </div>
-
-        {/* Filter Bar */}
-        <div className="menu-filters" style={{ marginBottom: '30px' }}>
-            <div className="form-row" style={{ alignItems: 'flex-end'}}>
-                <div style={{ flex: 1 }}>
-                    <label>Search Menu</label>
-                    <input 
-                        className="input" 
-                        placeholder="Search for momos, cakes..." 
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-                <div style={{ flex: 1 }}>
-                    <label>Category</label>
-                    <select 
-                        className="input" 
-                        value={filterCategory} 
-                        onChange={(e) => setFilterCategory(e.target.value)}
-                    >
-                        {allCategories.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                </div>
+        <div className="menu-header"><div className="section-title fancy-title neon-title">Our Menu</div></div>
+        
+        <div className="menu-filters mb-3 flex gap-2" style={{ alignItems: 'flex-end' }}>
+            <div style={{flex:1}}>
+                <label>Search</label>
+                <input className="input" placeholder="Search..." value={searchTerm} onChange={e=>setSearchTerm(e.target.value)} />
+            </div>
+            <div style={{flex:1}}>
+                <label>Category</label>
+                <select className="input" value={filterCategory} onChange={e=>setFilterCategory(e.target.value)}>
+                    {allCategories.map(c=><option key={c} value={c}>{c}</option>)}
+                </select>
             </div>
         </div>
 
-        {loading && <div className="small text-center">Loading menu...</div>}
-        
+        {loading && <div className="text-center">Loading menu...</div>}
+
         {!loading && (
-          <div className="menu-board grid-2">
-            {filteredProducts.length > 0 && (
-                <BakeryMenuBoard onAdd={onAdd} products={filteredProducts} />
-            )}
-            {filteredFastFood.length > 0 && (
-                <FastFoodMenuBoard onAdd={onAdd} fastFood={filteredFastFood} />
-            )}
-            {filteredProducts.length === 0 && filteredFastFood.length === 0 && (
-                <div className="text-center" style={{ gridColumn: '1/-1', padding: '20px' }}>
-                    No items found matching your search.
-                </div>
-            )}
+          <div className="grid">
+            {filteredProducts.map(p => <ProductCard key={p.id} item={p} onView={onViewProduct} />)}
+            {filteredFastFood.map(f => <FastFoodCard key={f.id} item={f} onView={onViewProduct} />)}
+            {filteredProducts.length === 0 && filteredFastFood.length === 0 && <div style={{gridColumn:'1/-1', textAlign:'center'}}>No items found.</div>}
           </div>
         )}
       </div>
@@ -451,77 +387,7 @@ function Menu({ onAdd }) {
   )
 }
 
-function BakeryMenuBoard({ onAdd, products }) {
-  const grouped = useMemo(()=> {
-    const map = new Map()
-    for (const p of products) {
-      const list = map.get(p.category) || []
-      list.push(p)
-      map.set(p.category, list)
-    }
-    return Array.from(map.entries())
-  }, [products])
-
-  return (
-    <section className="menu-column">
-      <div className="neon-section-title">Bakery Items</div>
-      {grouped.map(([cat, items])=> (
-        <div className="menu-category" key={cat}>
-          <div className="category-title neon-sub">{cat}</div>
-          <div className="menu-list">
-            {items.map(item=> (
-              <div className="menu-item" key={item.id}>
-                <span className="item-name">{item.name}</span>
-                <span className="spacer" aria-hidden="true"></span>
-                <span className="item-price">₹ {item.price}</span>
-                <button className="btn icon" aria-label={`Add ${item.name}`} onClick={()=> onAdd(item)} title="Add to cart">＋</button>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </section>
-  )
-}
-
-function FastFoodMenuBoard({ onAdd, fastFood }) {
-  const grouped = useMemo(()=> {
-    const map = new Map()
-    for (const f of fastFood) {
-      const list = map.get(f.category) || []
-      list.push(f)
-      map.set(f.category, list)
-    }
-    return Array.from(map.entries())
-  }, [fastFood])
-
-  return (
-    <section className="menu-column">
-      <div className="neon-section-title">Fast Food Corner</div>
-      {grouped.map(([cat, items])=> (
-        <div className="menu-category" key={cat}>
-          <div className="category-title neon-sub">{cat}</div>
-          <div className="menu-list">
-            {items.map(item=> (
-              <div className="menu-item" key={item.id}>
-                <span className="item-name">{item.name}</span>
-                <span className="spacer" aria-hidden="true"></span>
-                <span className="item-price">
-                  {item.prices?.half && <span className="price-variant">Half ₹ {item.prices.half}</span>}
-                  {item.prices?.half && item.prices?.full && <span className="price-sep"> • </span>}
-                  {item.prices?.full && <span className="price-variant">Full ₹ {item.prices.full}</span>}
-                </span>
-                <button className="btn icon" aria-label={`Add ${item.name}`} onClick={()=> onAdd({ id:item.id, name:item.name, price:item.prices?.full ?? item.prices?.half })} title="Add to cart">＋</button>
-              </div>
-            ))}
-          </div>
-        </div>
-      ))}
-    </section>
-  )
-}
-
-// --- ADMIN ---
+// --- ADMIN PAGES ---
 
 function AdminLogin({ onLogin }) {
   const [username, setUsername] = useState('')
@@ -535,40 +401,26 @@ function AdminLogin({ onLogin }) {
     setError('')
     try {
       const response = await fetch(`${API_URL}/api/admin/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ username, password })
       })
       if (!response.ok) throw new Error('Invalid credentials')
       const data = await response.json()
       sessionStorage.setItem('adminAuth', 'true')
       sessionStorage.setItem('adminToken', data.token)
       onLogin()
-    } catch (err) {
-      setError('Invalid username or password')
-    } finally {
-      setLoading(false)
-    }
+    } catch (err) { setError('Invalid username or password') } finally { setLoading(false) }
   }
 
   return (
-    <main className="section">
-      <div className="container" style={{ maxWidth: '480px' }}>
+    <main className="section"><div className="container" style={{ maxWidth: '480px' }}>
         <div className="section-title">Admin Login</div>
-        {error && <div className="card"><div className="card-body"><div className="card-desc" style={{ color: 'crimson' }}>{error}</div></div></div>}
-        <form onSubmit={submit} className="form-col">
-          <div>
-            <label>Username</label>
-            <input className="input" value={username} onChange={e => setUsername(e.target.value)} placeholder="admin" disabled={loading} />
-          </div>
-          <div>
-            <label>Password</label>
-            <input className="input" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="admin@123" disabled={loading} />
-          </div>
-          <button className="btn mt-2" type="submit" disabled={loading}>{loading ? 'Logging in...' : 'Login'}</button>
+        {error && <div className="card mb-3"><div className="card-body" style={{ color: 'crimson' }}>{error}</div></div>}
+        <form onSubmit={submit}>
+          <input className="input mb-2" value={username} onChange={e => setUsername(e.target.value)} placeholder="admin" disabled={loading} />
+          <input className="input mb-2" type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="admin@123" disabled={loading} />
+          <button className="btn" type="submit" disabled={loading}>{loading ? 'Logging in...' : 'Login'}</button>
         </form>
-      </div>
-    </main>
+    </div></main>
   )
 }
 
@@ -581,198 +433,77 @@ function AdminDashboard() {
   const [message, setMessage] = useState('')
 
   const resetEditing = () => setEditing(null)
-
   const [pForm, setPForm] = useState({ id: '', name: '', description: '', price: '', category: '', image: '' })
   const [fForm, setFForm] = useState({ id: '', name: '', category: '', image: '', half: '', full: '' })
 
-  useEffect(() => {
-    fetchProducts()
-    fetchFastFood()
-  }, [])
+  useEffect(() => { fetchProducts(); fetchFastFood(); }, [])
 
   const fetchProducts = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/products`)
-      const data = await response.json()
-      setProdList(data || [])
-    } catch (err) {
-      console.error('Error fetching products:', err)
-      setMessage('Error loading products')
-    } finally {
-      setLoading(false)
-    }
+    try { setProdList(await (await fetch(`${API_URL}/api/products`)).json()) } catch (err) { setMessage('Error loading products') } finally { setLoading(false) }
   }
-
   const fetchFastFood = async () => {
-    try {
-      const response = await fetch(`${API_URL}/api/fastfood`)
-      const data = await response.json()
-      setFfList(data || [])
-    } catch (err) {
-      console.error('Error fetching fast food:', err)
-    }
+    try { setFfList(await (await fetch(`${API_URL}/api/fastfood`)).json()) } catch (err) { console.error(err) }
   }
 
   const startEditProduct = (p) => {
-    setTab('products')
-    setEditing(p.id)
+    setTab('products'); setEditing(p.id);
     setPForm({ id: p.id, name: p.name, description: p.description || '', price: String(p.price), category: p.category, image: p.image || '' })
   }
-
   const startEditFastFood = (f) => {
-    setTab('fastfood')
-    setEditing(f.id)
+    setTab('fastfood'); setEditing(f.id);
     setFForm({ id: f.id, name: f.name, category: f.category, image: f.image || '', half: String(f.prices?.half || ''), full: String(f.prices?.full || '') })
   }
 
-  // --- IMAGE UPLOAD HANDLER ---
   const handleFileUpload = async (e, type) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    // 2MB Limit Check
-    const maxSize = 2 * 1024 * 1024; // 2MB
-    if (file.size > maxSize) {
-        alert("⚠️ File is too large! Please choose an image under 2MB.");
-        e.target.value = null; // Clear input
-        return;
-    }
-
+    if (file.size > 2 * 1024 * 1024) { alert("⚠️ File too large! Max 2MB."); e.target.value = null; return; }
     try {
       const base64 = await convertToBase64(file);
-      if (type === 'product') {
-        setPForm({ ...pForm, image: base64 });
-      } else {
-        setFForm({ ...fForm, image: base64 });
-      }
-    } catch (err) {
-      console.error("Error converting file", err);
-      alert("Error processing image");
-    }
+      if (type === 'product') setPForm({ ...pForm, image: base64 });
+      else setFForm({ ...fForm, image: base64 });
+    } catch (err) { alert("Error processing image"); }
   };
 
   const saveProduct = async () => {
-    if (!pForm.name || !pForm.price || !pForm.category) {
-      setMessage('Please fill all required fields')
-      return
-    }
-
     try {
-      setLoading(true)
-      const id = editing || ('p' + Date.now())
-      const url = editing ? `${API_URL}/api/products/${id}` : `${API_URL}/api/products`
-      const method = editing ? 'PUT' : 'POST'
-
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id,
-          name: pForm.name,
-          description: pForm.description,
-          price: Number(pForm.price),
-          category: pForm.category,
-          image: pForm.image
-        })
-      })
-
-      if (!response.ok) throw new Error('Failed to save product')
-      setMessage(editing ? 'Product updated successfully' : 'Product added successfully')
-      await fetchProducts()
-      resetEditing()
-      setPForm({ id: '', name: '', description: '', price: '', category: '', image: '' })
-    } catch (err) {
-      setMessage('Error saving product: ' + err.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const deleteProduct = async (id) => {
-    if (!window.confirm('Are you sure?')) return
-    try {
-      setLoading(true)
-      const response = await fetch(`${API_URL}/api/products/${id}`, { method: 'DELETE' })
-      if (!response.ok) throw new Error('Failed to delete')
-      setMessage('Product deleted successfully')
-      await fetchProducts()
-    } catch (err) {
-      setMessage('Error deleting product: ' + err.message)
-    } finally {
-      setLoading(false)
-    }
+      setLoading(true); const id = editing || ('p' + Date.now());
+      const method = editing ? 'PUT' : 'POST';
+      const url = editing ? `${API_URL}/api/products/${id}` : `${API_URL}/api/products`;
+      await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...pForm, id, price: Number(pForm.price) }) });
+      await fetchProducts(); resetEditing(); setPForm({ id: '', name: '', description: '', price: '', category: '', image: '' });
+      setMessage('Saved successfully');
+    } catch (err) { setMessage('Error saving') } finally { setLoading(false) }
   }
 
   const saveFastFood = async () => {
-    if (!fForm.name || !fForm.category || (!fForm.half && !fForm.full)) {
-      setMessage('Please fill required fields (at least one price)')
-      return
-    }
-
     try {
-      setLoading(true)
-      const id = editing || ('ff' + Date.now())
-      const url = editing ? `${API_URL}/api/fastfood/${id}` : `${API_URL}/api/fastfood`
-      const method = editing ? 'PUT' : 'POST'
-
-      const response = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id,
-          name: fForm.name,
-          category: fForm.category,
-          image: fForm.image,
-          prices: {
-            half: fForm.half ? Number(fForm.half) : null,
-            full: fForm.full ? Number(fForm.full) : null
-          }
-        })
-      })
-
-      if (!response.ok) throw new Error('Failed to save item')
-      setMessage(editing ? 'Item updated successfully' : 'Item added successfully')
-      await fetchFastFood()
-      resetEditing()
-      setFForm({ id: '', name: '', category: '', image: '', half: '', full: '' })
-    } catch (err) {
-      setMessage('Error saving item: ' + err.message)
-    } finally {
-      setLoading(false)
-    }
+      setLoading(true); const id = editing || ('ff' + Date.now());
+      const method = editing ? 'PUT' : 'POST';
+      const url = editing ? `${API_URL}/api/fastfood/${id}` : `${API_URL}/api/fastfood`;
+      await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ...fForm, id, prices: { half: Number(fForm.half), full: Number(fForm.full) } }) });
+      await fetchFastFood(); resetEditing(); setFForm({ id: '', name: '', category: '', image: '', half: '', full: '' });
+      setMessage('Saved successfully');
+    } catch (err) { setMessage('Error saving') } finally { setLoading(false) }
   }
 
-  const deleteFastFood = async (id) => {
-    if (!window.confirm('Are you sure?')) return
-    try {
-      setLoading(true)
-      const response = await fetch(`${API_URL}/api/fastfood/${id}`, { method: 'DELETE' })
-      if (!response.ok) throw new Error('Failed to delete')
-      setMessage('Item deleted successfully')
-      await fetchFastFood()
-    } catch (err) {
-      setMessage('Error deleting item: ' + err.message)
-    } finally {
-      setLoading(false)
-    }
+  const deleteItem = async (id, type) => {
+      if (!confirm('Delete?')) return;
+      setLoading(true);
+      await fetch(`${API_URL}/api/${type}/${id}`, { method: 'DELETE' });
+      if(type==='products') fetchProducts(); else fetchFastFood();
+      setLoading(false);
   }
 
-  const logout = () => {
-    sessionStorage.removeItem('adminAuth')
-    sessionStorage.removeItem('adminToken')
-    window.location.hash = `#/${PAGES.home}`
-  }
+  const logout = () => { sessionStorage.removeItem('adminAuth'); sessionStorage.removeItem('adminToken'); window.location.hash = `#/${PAGES.home}`; }
 
-  if (loading && prodList.length === 0 && ffList.length === 0) {
-    return <main className="section"><div className="container">Loading dashboard...</div></main>
-  }
+  if (loading && prodList.length === 0 && ffList.length === 0) return <main className="section"><div className="container">Loading dashboard...</div></main>
 
   return (
-    <main className="section">
-      <div className="container">
+    <main className="section"><div className="container">
         <div className="section-title">Admin Dashboard</div>
-        {message && <div className="card mb-3"><div className="card-body"><div className="card-desc">{message}</div></div></div>}
-        <div className="flex gap-2 mb-3" style={{ flexWrap: 'wrap' }}>
+        {message && <div className="card mb-3"><div className="card-body">{message}</div></div>}
+        <div className="flex gap-2 mb-3">
           <button className={`btn ${tab === 'products' ? '' : 'outline'}`} onClick={() => setTab('products')}>Products</button>
           <button className={`btn ${tab === 'fastfood' ? '' : 'outline'}`} onClick={() => setTab('fastfood')}>Fast Food</button>
           <button className="btn outline" onClick={logout}>Logout</button>
@@ -782,39 +513,33 @@ function AdminDashboard() {
           <div className="grid">
             <div className="card" style={{ gridColumn: '1/-1' }}>
               <div className="card-body">
-                <div className="card-title">{editing ? 'Edit Product' : 'Add Product'}</div>
+                <h4>{editing ? 'Edit' : 'Add'} Product</h4>
                 <div className="form-row">
-                  <div><label>Name*</label><input className="input" value={pForm.name} onChange={e => setPForm({ ...pForm, name: e.target.value })} disabled={loading} /></div>
-                  <div><label>Category*</label><input className="input" value={pForm.category} onChange={e => setPForm({ ...pForm, category: e.target.value })} disabled={loading} /></div>
+                  <input className="input" placeholder="Name" value={pForm.name} onChange={e => setPForm({ ...pForm, name: e.target.value })} />
+                  <input className="input" placeholder="Category" value={pForm.category} onChange={e => setPForm({ ...pForm, category: e.target.value })} />
                 </div>
-                <div className="form-row">
-                  <div><label>Price*</label><input className="input" type="number" value={pForm.price} onChange={e => setPForm({ ...pForm, price: e.target.value })} disabled={loading} /></div>
-                  
-                  {/* Image Upload for Products */}
+                <div className="form-row mt-2">
+                  <input className="input" type="number" placeholder="Price" value={pForm.price} onChange={e => setPForm({ ...pForm, price: e.target.value })} />
                   <div>
-                    <label>Upload Image</label>
-                    <input type="file" accept="image/*" className="input" onChange={(e) => handleFileUpload(e, 'product')} disabled={loading} />
-                    <input className="input mt-1" placeholder="Or paste image URL" value={pForm.image} onChange={e => setPForm({ ...pForm, image: e.target.value })} disabled={loading} />
+                    <input type="file" accept="image/*" className="input" onChange={(e) => handleFileUpload(e, 'product')} />
                     {pForm.image && <img src={pForm.image} alt="Preview" style={{ height: '50px', marginTop: '5px' }} />}
                   </div>
                 </div>
-                <div><label>Description</label><textarea rows="3" className="input" value={pForm.description} onChange={e => setPForm({ ...pForm, description: e.target.value })} disabled={loading} /></div>
+                <textarea className="input mt-2" placeholder="Description" value={pForm.description} onChange={e => setPForm({ ...pForm, description: e.target.value })} />
                 <div className="flex gap-2 mt-2">
-                  <button className="btn" onClick={saveProduct} disabled={loading}>{editing ? 'Save' : 'Add'}</button>
-                  {editing && <button className="btn outline" onClick={resetEditing} disabled={loading}>Cancel</button>}
+                  <button className="btn" onClick={saveProduct} disabled={loading}>Save</button>
+                  {editing && <button className="btn outline" onClick={resetEditing}>Cancel</button>}
                 </div>
               </div>
             </div>
             {prodList.map(p => (
               <div className="card" key={p.id}>
-                {p.image && <img src={p.image} alt={p.name} loading="lazy" crossOrigin="anonymous" referrerPolicy="no-referrer" onError={(e)=>e.target.src='https://placehold.co/400x300'} />}
                 <div className="card-body">
-                  <div className="chip" aria-label={p.category}>{p.category}</div>
                   <div className="card-title">{p.name}</div>
                   <div className="card-desc">₹ {p.price}</div>
-                  <div className="card-actions">
-                    <button className="btn" onClick={() => startEditProduct(p)} disabled={loading}>Edit</button>
-                    <button className="btn outline" onClick={() => deleteProduct(p.id)} disabled={loading}>Delete</button>
+                  <div className="flex gap-2 mt-2">
+                    <button className="btn small" onClick={() => startEditProduct(p)}>Edit</button>
+                    <button className="btn small outline" onClick={() => deleteItem(p.id, 'products')}>Delete</button>
                   </div>
                 </div>
               </div>
@@ -824,50 +549,42 @@ function AdminDashboard() {
 
         {tab === 'fastfood' && (
           <div className="grid">
-            <div className="card" style={{ gridColumn: '1/-1' }}>
+             <div className="card" style={{ gridColumn: '1/-1' }}>
               <div className="card-body">
-                <div className="card-title">{editing ? 'Edit Fast Food Item' : 'Add Fast Food Item'}</div>
+                <h4>{editing ? 'Edit' : 'Add'} Fast Food</h4>
                 <div className="form-row">
-                  <div><label>Name*</label><input className="input" value={fForm.name} onChange={e => setFForm({ ...fForm, name: e.target.value })} disabled={loading} /></div>
-                  <div><label>Category*</label><input className="input" value={fForm.category} onChange={e => setFForm({ ...fForm, category: e.target.value })} disabled={loading} /></div>
+                  <input className="input" placeholder="Name" value={fForm.name} onChange={e => setFForm({ ...fForm, name: e.target.value })} />
+                  <input className="input" placeholder="Category" value={fForm.category} onChange={e => setFForm({ ...fForm, category: e.target.value })} />
                 </div>
-                <div className="form-row">
-                  <div><label>Half Price</label><input className="input" type="number" value={fForm.half} onChange={e => setFForm({ ...fForm, half: e.target.value })} disabled={loading} /></div>
-                  <div><label>Full Price</label><input className="input" type="number" value={fForm.full} onChange={e => setFForm({ ...fForm, full: e.target.value })} disabled={loading} /></div>
+                <div className="form-row mt-2">
+                  <input className="input" type="number" placeholder="Half Price" value={fForm.half} onChange={e => setFForm({ ...fForm, half: e.target.value })} />
+                  <input className="input" type="number" placeholder="Full Price" value={fForm.full} onChange={e => setFForm({ ...fForm, full: e.target.value })} />
                 </div>
-                
-                {/* Image Upload for Fast Food */}
-                <div>
-                    <label>Upload Image</label>
-                    <input type="file" accept="image/*" className="input" onChange={(e) => handleFileUpload(e, 'fastfood')} disabled={loading} />
-                    <input className="input mt-1" placeholder="Or paste image URL" value={fForm.image} onChange={e => setFForm({ ...fForm, image: e.target.value })} disabled={loading} />
+                <div className="mt-2">
+                    <input type="file" accept="image/*" className="input" onChange={(e) => handleFileUpload(e, 'fastfood')} />
                     {fForm.image && <img src={fForm.image} alt="Preview" style={{ height: '50px', marginTop: '5px' }} />}
                 </div>
-
                 <div className="flex gap-2 mt-2">
-                  <button className="btn" onClick={saveFastFood} disabled={loading}>{editing ? 'Save' : 'Add'}</button>
-                  {editing && <button className="btn outline" onClick={resetEditing} disabled={loading}>Cancel</button>}
+                  <button className="btn" onClick={saveFastFood} disabled={loading}>Save</button>
+                  {editing && <button className="btn outline" onClick={resetEditing}>Cancel</button>}
                 </div>
               </div>
             </div>
             {ffList.map(f => (
               <div className="card" key={f.id}>
-                {f.image && <img src={f.image} alt={f.name} loading="lazy" crossOrigin="anonymous" referrerPolicy="no-referrer" onError={(e)=>e.target.src='https://placehold.co/400x300'} />}
                 <div className="card-body">
-                  <div className="chip" aria-label={f.category}>{f.category}</div>
                   <div className="card-title">{f.name}</div>
-                  <div className="card-desc">{f.prices?.half ? `Half ₹ ${f.prices.half} • ` : ''}{f.prices?.full ? `Full ₹ ${f.prices.full}` : ''}</div>
-                  <div className="card-actions">
-                    <button className="btn" onClick={() => startEditFastFood(f)} disabled={loading}>Edit</button>
-                    <button className="btn outline" onClick={() => deleteFastFood(f.id)} disabled={loading}>Delete</button>
+                  <div className="card-desc">{f.prices?.half ? `Half: ${f.prices.half}` : ''} {f.prices?.full ? `Full: ${f.prices.full}` : ''}</div>
+                  <div className="flex gap-2 mt-2">
+                    <button className="btn small" onClick={() => startEditFastFood(f)}>Edit</button>
+                    <button className="btn small outline" onClick={() => deleteItem(f.id, 'fastfood')}>Delete</button>
                   </div>
                 </div>
               </div>
             ))}
           </div>
         )}
-      </div>
-    </main>
+    </div></main>
   )
 }
 
@@ -882,176 +599,116 @@ function Order({ cart }) {
   const WHATSAPP_NUMBER = '919999999999'
   const onSubmit = (e)=> {
     e.preventDefault()
-    const orderItems = form.items || cart.map(i=> `${i.name} x1`).join(', ')
+    const orderItems = form.items || cart.map(i=> `${i.name} (₹${i.price})`).join(', ')
     const text = encodeURIComponent(`Order Request\nName: ${form.name}\nContact: ${form.contact}\nDate: ${form.date}\nItems: ${orderItems}\nNotes: ${form.notes}`)
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`
     window.open(url, '_blank')
   }
   return (
-    <main className="section">
-      <div className="container">
-        <div className="section-title">Order / Pre-Order</div>
+    <main className="section"><div className="container">
+        <div className="section-title">Order</div>
         <form onSubmit={onSubmit}>
           <div className="form-row">
-            <div>
-              <label>Name</label>
-              <input className="input" value={form.name} onChange={e=>setForm({...form, name:e.target.value})} required />
-            </div>
-            <div>
-              <label>Contact</label>
-              <input className="input" value={form.contact} onChange={e=>setForm({...form, contact:e.target.value})} placeholder="Phone or Email" required />
-            </div>
+            <input className="input" placeholder="Name" value={form.name} onChange={e=>setForm({...form, name:e.target.value})} required />
+            <input className="input" placeholder="Contact" value={form.contact} onChange={e=>setForm({...form, contact:e.target.value})} required />
           </div>
-          <div className="form-row">
-            <div>
-              <label>Date</label>
-              <input type="date" className="input" value={form.date} onChange={e=>setForm({...form, date:e.target.value})} required />
-            </div>
-            <div>
-              <label>Items</label>
-              <input className="input" value={form.items} onChange={e=>setForm({...form, items:e.target.value})} placeholder="Cakes, cookies, etc." />
-            </div>
+          <div className="form-row mt-2">
+            <input type="date" className="input" value={form.date} onChange={e=>setForm({...form, date:e.target.value})} required />
+            <input className="input" placeholder="Items (leave blank if using cart)" value={form.items} onChange={e=>setForm({...form, items:e.target.value})} />
           </div>
-          <div className="mb-3">
-            <label>Custom Notes</label>
-            <textarea rows={4} className="input" value={form.notes} onChange={e=>setForm({...form, notes:e.target.value})} placeholder="Write flavor, size, message, etc." />
-          </div>
-          <div className="flex gap-2">
-            <button className="btn" type="submit">Send on WhatsApp</button>
-            <button className="btn outline" type="button" onClick={()=> alert('Online payment integration placeholder (Razorpay/Stripe).')}>Pay Online</button>
-          </div>
+          <textarea className="input mt-2" placeholder="Notes" value={form.notes} onChange={e=>setForm({...form, notes:e.target.value})} />
+          <button className="btn mt-2">Send on WhatsApp</button>
         </form>
-      </div>
-    </main>
+    </div></main>
   )
 }
 
 function About() {
   return (
-    <main className="section">
-      <div className="container">
+    <main className="section"><div className="container">
         <div className="section-title">About Us</div>
-        <p className="mb-3">We believe in homemade happiness. Our bakery started with a simple mission: craft warm, cozy, and inviting bakes that bring people together. From the first loaf to every celebration cake, we bake with love.</p>
-          <div className="grid">
-          <div className="card"><img src="https://placehold.co/1200x800/fff7eb/6b4f3b?text=Our+Team" alt="Team" /></div>
-          <div className="card"><img src="https://placehold.co/1200x800/fff7eb/6b4f3b?text=Our+Kitchen" alt="Kitchen" /></div>
-          <div className="card"><img src="https://placehold.co/1200x800/fff7eb/6b4f3b?text=Our+Shop" alt="Shop" /></div>
-          <div className="card"><img src="https://placehold.co/1200x800/fff7eb/6b4f3b?text=Fresh+Bakes" alt="Fresh Bakes" /></div>
+        <p>We believe in homemade happiness. Our bakery started with a simple mission: craft warm, cozy, and inviting bakes that bring people together.</p>
+        <div className="grid mt-3">
+             <div className="card"><img src="https://placehold.co/600x400/fff7eb/6b4f3b?text=Team" /></div>
+             <div className="card"><img src="https://placehold.co/600x400/fff7eb/6b4f3b?text=Kitchen" /></div>
         </div>
-      </div>
-    </main>
+    </div></main>
   )
 }
 
 function Contact() {
-  const [msg, setMsg] = useState({ name:'', email:'', text:'' })
-  const onSubmit = (e) => {
-    e.preventDefault()
-    const mailto = `mailto:corbettbakers@example.com?subject=${encodeURIComponent('Website contact from '+msg.name)}&body=${encodeURIComponent(msg.text + '\n\nReply to: ' + msg.email)}`
-    window.location.href = mailto
-  }
   return (
-    <main className="section">
-      <div className="container">
+    <main className="section"><div className="container">
         <div className="section-title">Contact Us</div>
-        <form onSubmit={onSubmit}>
-          <div className="form-row">
-            <div>
-              <label>Name</label>
-              <input className="input" value={msg.name} onChange={e=>setMsg({...msg, name:e.target.value})} required />
-            </div>
-            <div>
-              <label>Email</label>
-              <input type="email" className="input" value={msg.email} onChange={e=>setMsg({...msg, email:e.target.value})} required />
-            </div>
-          </div>
-          <div className="mb-3">
-            <label>Message</label>
-            <textarea rows={4} className="input" value={msg.text} onChange={e=>setMsg({...msg, text:e.target.value})} required />
-          </div>
-          <button className="btn" type="submit">Send Email</button>
-        </form>
-        <div className="mt-4">
-          <div className="section-title">Find Us</div>
-          <div className="hero-card">
-            <iframe title="Map" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3431.8829893200686!2d79.126!3d29.397!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sRamnagar!5e0!3m2!1sen!2sin!4v1700000000000" width="100%" height="320" style={{ border: 0 }} allowFullScreen="" loading="lazy" referrerPolicy="no-referrer-when-downgrade"></iframe>
-          </div>
+        <p>📍 Bannakhera, Uttarakhand <br/> ☎️ +91 99999 99999</p>
+        <div className="hero-card mt-3">
+            <iframe title="Map" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3431.8829893200686!2d79.126!3d29.397!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sRamnagar!5e0!3m2!1sen!2sin!4v1700000000000" width="100%" height="320" style={{ border: 0 }} allowFullScreen="" loading="lazy"></iframe>
         </div>
-      </div>
-    </main>
+    </div></main>
   )
 }
 
+// --- MAIN APP ---
+
 function App() {
   const { page, navigate } = useHashRoute(PAGES.home)
-  const [dark, setDark] = useState(false)
   const [cart, setCart] = useState([])
   const [cartOpen, setCartOpen] = useState(false)
-  
-  // Simple toast notification
+  const [selectedProduct, setSelectedProduct] = useState(null)
   const [toast, setToast] = useState(null)
+  const [dark, setDark] = useState(false)
 
   useEffect(()=> { document.documentElement.classList.toggle('dark', dark) }, [dark])
-  
-  const onAdd = (item)=> {
-      setCart((c)=> [...c, item])
-      setToast(`Added ${item.name} to cart`)
-      setTimeout(()=> setToast(null), 2000)
+
+  const onAdd = (item) => {
+      setCart(c => [...c, item]);
+      setToast(`Added ${item.name}`);
+      setTimeout(()=>setToast(null), 2000);
   }
-  
-  const removeFromCart = (idx)=> setCart((c)=> c.filter((_, i)=> i!==idx))
-  const total = cart.reduce((sum, i)=> sum + i.price, 0)
-  
+
   return (
     <>
-      <Header navigate={navigate} page={page} toggleDark={()=> setDark(d=> !d)} cartCount={cart.length} onOpenCart={()=> setCartOpen(true)} />
+      <Header navigate={navigate} page={page} toggleDark={()=>setDark(!dark)} cartCount={cart.length} onOpenCart={()=>setCartOpen(true)} />
       
-      {page===PAGES.home && <Home navigate={navigate} />}
-      {page===PAGES.menu && <Menu onAdd={onAdd} />}
-      {page===PAGES.gallery && <Gallery />}
+      {page===PAGES.home && <Home navigate={navigate} onViewProduct={setSelectedProduct} />}
+      {page===PAGES.menu && <Menu onViewProduct={setSelectedProduct} onAdd={onAdd} />} 
       {page===PAGES.order && <Order cart={cart} />}
       {page===PAGES.about && <About />}
       {page===PAGES.contact && <Contact />}
+      {page===PAGES.gallery && <Gallery />}
       {page===PAGES.admin && <Admin />}
       
-      {/* Toast Notification */}
-      {toast && (
-          <div style={{ position: 'fixed', bottom: '20px', left: '50%', transform: 'translateX(-50%)', background: '#333', color: '#fff', padding: '10px 20px', borderRadius: '30px', zIndex: 3000, boxShadow: '0 4px 10px rgba(0,0,0,0.2)' }}>
-              {toast}
-          </div>
+      {/* Product Details Modal */}
+      {selectedProduct && (
+          <ProductDetailsModal product={selectedProduct} onClose={() => setSelectedProduct(null)} onAdd={onAdd} />
       )}
 
+      {/* Cart Drawer */}
       {cartOpen && (
-        <>
-          <div className="drawer-backdrop" onClick={()=> setCartOpen(false)} />
-          <aside className="drawer">
-            <div className="drawer-header">Your Cart ({cart.length})</div>
+        <div className="drawer-backdrop" onClick={()=>setCartOpen(false)}>
+          <aside className="drawer" onClick={e=>e.stopPropagation()}>
+            <div className="drawer-header">Cart ({cart.length})</div>
             <div className="drawer-body">
-              {cart.length===0 && <div className="small">Your cart is empty.</div>}
-              {cart.map((item, idx)=> (
-                <div className="drawer-item" key={idx}>
-                  <div>
-                    <div className="card-title">{item.name}</div>
-                    <div className="small">₹ {item.price}</div>
-                  </div>
-                  <button className="btn outline" onClick={()=> removeFromCart(idx)}>Remove</button>
-                </div>
-              ))}
+                {cart.length === 0 && <p className="small">Cart is empty</p>}
+                {cart.map((item, i) => (
+                    <div className="drawer-item" key={i}>
+                        <div>{item.name}</div>
+                        <div>₹{item.price}</div>
+                        <button onClick={()=>setCart(c=>c.filter((_,idx)=>idx!==i))}>x</button>
+                    </div>
+                ))}
             </div>
             <div className="drawer-footer">
-              <div className="justify-between flex items-center mb-2">
-                <div className="card-title">Total</div>
-                <div className="card-title">₹ {total}</div>
-              </div>
-              <div className="flex gap-2">
-                <button className="btn" onClick={()=> { setCartOpen(false); navigate(PAGES.order) }}>Checkout</button>
-                <button className="btn outline" onClick={()=> setCartOpen(false)}>Continue Shopping</button>
-              </div>
+                <div className="flex gap-2 justify-between mb-2"><strong>Total</strong><strong>₹{cart.reduce((a,b)=>a+b.price,0)}</strong></div>
+                <button className="btn" onClick={()=>{setCartOpen(false); navigate(PAGES.order)}}>Checkout</button>
             </div>
           </aside>
-        </>
+        </div>
       )}
-      <a className="fab" href="https://wa.me/918433138312" target="_blank" rel="noreferrer">Chat on WhatsApp</a>
+
+      {toast && <div style={{position:'fixed', bottom:'20px', left:'50%', transform:'translateX(-50%)', background:'#333', color:'#fff', padding:'10px 20px', borderRadius:'20px', zIndex:4000}}>{toast}</div>}
+      
+      <a className="fab" href="https://wa.me/919999999999" target="_blank" rel="noreferrer">Chat</a>
       <Footer />
     </>
   )
