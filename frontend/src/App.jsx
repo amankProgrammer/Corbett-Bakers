@@ -3,14 +3,20 @@ import './index.css'
 
 // --- CONSTANTS & CONFIG ---
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000'
-const PAGES = { home: 'home', menu: 'menu', order: 'order', gallery: 'gallery', about: 'about', contact: 'contact', admin: 'admin' }
+// REMOVED: 'gallery' from PAGES
+const PAGES = { home: 'home', menu: 'menu', order: 'order', about: 'about', contact: 'contact', admin: 'admin' }
 
-// Build gallery from local images placed in public/images
-const GALLERY_IMAGES = Array.from({ length: 16 }, (_, i) => `/images/cake_${i+1}.jpg`)
+// --- DATA: WHAT'S IN YOUR HEART CATEGORIES ---
+const HEART_CATEGORIES = [
+  { id: 1, label: 'Birthday', image: 'https://images.unsplash.com/photo-1558301211-0d8c8ddee6ec?auto=format&fit=crop&w=300&q=80' },
+  { id: 2, label: 'Anniversary', image: 'https://images.unsplash.com/photo-1535254973040-607b474cb50d?auto=format&fit=crop&w=300&q=80' },
+  { id: 3, label: 'Choco Love', image: 'https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=300&q=80' },
+  { id: 4, label: 'Fruit Cakes', image: './images/cake_4.jpg' },
+  { id: 5, label: 'Cupcakes', image: 'https://images.pexels.com/photos/1179002/pexels-photo-1179002.jpeg' },
+  { id: 6, label: 'Party Props', image: 'https://images.pexels.com/photos/32370566/pexels-photo-32370566.jpeg' },
+];
 
 // --- HELPERS ---
-
-// Helper to convert file to Base64 string for DB storage
 const convertToBase64 = (file) => {
   return new Promise((resolve, reject) => {
     const fileReader = new FileReader();
@@ -19,6 +25,12 @@ const convertToBase64 = (file) => {
     fileReader.onerror = (error) => reject(error);
   });
 };
+
+// Mock Social Data (using your gallery images)
+// We create 3 sets for 3 rows
+const SOCIAL_ROW_1 = Array.from({ length: 6 }, (_, i) => ({ type: 'image', src: `/images/cake_${(i % 12) + 1}.jpg` }));
+const SOCIAL_ROW_2 = Array.from({ length: 6 }, (_, i) => ({ type: 'image', src: `/images/cake_${(i % 12) + 5}.jpg` })); 
+const SOCIAL_ROW_3 = Array.from({ length: 6 }, (_, i) => ({ type: 'image', src: `/images/cake_${(i % 12) + 9}.jpg` }));
 
 // --- COMPONENT: PRODUCT DETAILS MODAL ---
 function ProductDetailsModal({ product, onClose, onAdd }) {
@@ -42,7 +54,6 @@ function ProductDetailsModal({ product, onClose, onAdd }) {
         </button>
         
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0', padding: '0' }}>
-           {/* Modal Image - Large */}
            <div style={{ width: '100%', height: '350px', backgroundColor: '#f9f9f9' }}>
              <img 
                src={product.image} 
@@ -52,12 +63,10 @@ function ProductDetailsModal({ product, onClose, onAdd }) {
              />
            </div>
 
-           {/* Modal Content */}
            <div style={{ padding: '30px' }}>
              <div className="chip" style={{ marginBottom: '10px' }}>{product.category}</div>
              <h2 className="card-title" style={{ fontSize: '1.8rem', marginBottom: '10px' }}>{product.name}</h2>
              
-             {/* Price Display */}
              <div style={{ fontSize: '1.4rem', fontWeight: 'bold', color: '#D7A86E', marginBottom: '20px' }}>
                 {product.price ? `₹ ${product.price}` : ''}
                 {hasHalf && `Half: ₹${product.prices.half}  `} 
@@ -69,7 +78,6 @@ function ProductDetailsModal({ product, onClose, onAdd }) {
                {product.description || product.desc || "No description available for this item."}
              </p>
 
-             {/* Action Buttons */}
              <div className="card-actions">
                 {product.price && (
                    <button className="btn" onClick={() => { onAdd(product); onClose(); }}>Add to Cart (₹ {product.price})</button>
@@ -90,38 +98,6 @@ function ProductDetailsModal({ product, onClose, onAdd }) {
         </div>
       </div>
     </div>
-  )
-}
-
-// --- SHARED COMPONENTS ---
-
-function Gallery() {
-  const [selectedImage, setSelectedImage] = useState(null)
-  return (
-    <main className="section">
-      <div className="container">
-        <div className="section-title">Our Creations</div>
-        <p className="muted" style={{ marginTop: '-10px', marginBottom: '20px' }}>
-          A glimpse into our kitchen and happy customers.
-        </p>
-        <div className="grid">
-          {GALLERY_IMAGES.map((src, i) => (
-            <div className="card" key={i} onClick={() => setSelectedImage(src)} style={{ cursor: 'pointer' }}>
-              <div className="card-image">
-                <img src={src} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover', aspectRatio: '1/1' }} 
-                     onError={(e) => e.target.src = 'https://placehold.co/600x600/fde2e4/6b4f3b?text=Delicious'} />
-              </div>
-            </div>
-          ))}
-        </div>
-        {selectedImage && (
-          <div className="lightbox-overlay" onClick={() => setSelectedImage(null)} style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2000, cursor: 'zoom-out' }}>
-             <button onClick={() => setSelectedImage(null)} style={{ position: 'absolute', top: '20px', right: '30px', background: 'transparent', border: 'none', color: '#fff', fontSize: '2rem', cursor: 'pointer' }}>×</button>
-            <img src={selectedImage} style={{ maxWidth: '90%', maxHeight: '90%', borderRadius: '8px' }} onClick={(e) => e.stopPropagation()} />
-          </div>
-        )}
-      </div>
-    </main>
   )
 }
 
@@ -154,12 +130,12 @@ function Header({ navigate, page, toggleDark, cartCount, onOpenCart }) {
         <nav className="nav">
           <a href="#/home" onClick={(e)=>{e.preventDefault();navigate(PAGES.home)}} aria-current={page===PAGES.home}>Home</a>
           <a href="#/menu" onClick={(e)=>{e.preventDefault();navigate(PAGES.menu)}}>Menu</a>
-          <a href="#/gallery" onClick={(e)=>{e.preventDefault();navigate(PAGES.gallery)}}>Gallery</a>
           <a href="#/order" onClick={(e)=>{e.preventDefault();navigate(PAGES.order)}}>Order</a>
           <a href="#/about" onClick={(e)=>{e.preventDefault();navigate(PAGES.about)}}>About</a>
           <a href="#/contact" onClick={(e)=>{e.preventDefault();navigate(PAGES.contact)}}>Contact</a>
           <button className="btn outline" onClick={toggleDark} title="Toggle dark mode">Dark/Light</button>
           <button className="btn outline" onClick={onOpenCart} title="View cart">Cart ({cartCount})</button>
+          <a className="btn" href="#/order" onClick={(e)=>{e.preventDefault();navigate(PAGES.order)}}>Order Now</a>
         </nav>
       </div>
     </header>
@@ -180,6 +156,11 @@ function Footer() {
           <div className="small">Mon–Sun: 8:00am – 9:00pm</div>
           <div className="small">Fresh bakes daily</div>
         </div>
+        <div>
+          <h4>Newsletter</h4>
+          <input className="input" placeholder="Email address" aria-label="Email address" />
+          <button className="btn mt-2" onClick={()=>alert('Subscribed!')}>Subscribe</button>
+        </div>
       </div>
     </footer>
   )
@@ -193,8 +174,7 @@ async function fetchFastFoodFromAPI() {
   try { return await (await fetch(`${API_URL}/api/fastfood`)).json() } catch { return [] }
 }
 
-// --- CARDS WITH FIXED DIMENSIONS ---
-
+// --- CARDS ---
 function FastFoodCard({ item, onView }) {
   const hasHalf = item.prices && typeof item.prices.half === 'number'
   return (
@@ -248,7 +228,7 @@ function ProductCard({ item, onView }) {
   )
 }
 
-// --- PAGES ---
+// --- HOME PAGE (With New "What's In Your Heart" Section) ---
 
 function Home({ navigate, onViewProduct }) {
   const [products, setProducts] = useState([])
@@ -304,30 +284,56 @@ function Home({ navigate, onViewProduct }) {
         </div>
       </section>
 
-      {/* 2. WHY CHOOSE US (New Filler Section) */}
-      <section className="section" style={{ backgroundColor: '#fffbf2' }}>
+      {/* 2. WHAT'S IN YOUR HEART */}
+      <section className="section heart-section">
         <div className="container">
-           <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', textAlign: 'center', gap: '30px' }}>
-              <div style={{ padding: '20px' }}>
-                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🌿</div>
-                  <h3 style={{ marginBottom: '10px', color: '#6b4f3b' }}>100% Fresh</h3>
-                  <p className="small">We use only the finest, fresh ingredients. No preservatives, just pure taste.</p>
+           <div className="section-title text-center" style={{ textAlign:'center', fontSize: '2rem' }}>What’s In Your Heart?</div>
+           <div className="heart-grid">
+              {HEART_CATEGORIES.map(cat => (
+                <div key={cat.id} className="heart-item" onClick={()=>navigate(PAGES.menu)}>
+                   <div className="heart-img-box">
+                      <img src={cat.image} alt={cat.label} loading="lazy" />
+                   </div>
+                   <div className="heart-label">{cat.label}</div>
+                </div>
+              ))}
+           </div>
+        </div>
+      </section>
+
+      {/* 3. CHEF'S SPOTLIGHT */}
+      <section className="section section-alt">
+        <div className="container">
+           <div style={{ textAlign: 'center', marginBottom: '2rem' }}>
+              <div className="chip">Chef's Favorite</div>
+           </div>
+           <div className="spotlight-wrapper">
+              <div className="spotlight-image">
+                 <img 
+                    src="/images/cake_2.jpg" 
+                    alt="Red Velvet Supreme" 
+                    loading="lazy" 
+                    onError={(e) => e.target.src = 'https://images.unsplash.com/photo-1586788680434-30d3244363c3?q=80&w=1000&auto=format&fit=crop'} 
+                 />
+                 <div className="sticker" style={{ top: '20px', left: '20px' }}>
+                    <div><small>Today</small>Spcl</div>
+                 </div>
               </div>
-              <div style={{ padding: '20px' }}>
-                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>👨‍🍳</div>
-                  <h3 style={{ marginBottom: '10px', color: '#6b4f3b' }}>Master Chefs</h3>
-                  <p className="small">Baked by experts with years of experience in crafting the perfect sponge.</p>
-              </div>
-              <div style={{ padding: '20px' }}>
-                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🚚</div>
-                  <h3 style={{ marginBottom: '10px', color: '#6b4f3b' }}>Fast Delivery</h3>
-                  <p className="small">Craving something sweet? We deliver straight to your doorstep in minutes.</p>
+              <div className="spotlight-content">
+                 <h2 className="fancy-title" style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>The Red Velvet Supreme</h2>
+                 <p className="muted" style={{ lineHeight: '1.8', marginBottom: '1.5rem', fontSize: '1.1rem' }}>
+                    Our signature creation. Three layers of moist, cocoa-infused red sponge layered with our secret cream cheese frosting. Finished with white chocolate shavings and fresh berries.
+                 </p>
+                 <div className="flex gap-2 items-center">
+                    <span style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'var(--brown-dark)' }}>₹899</span>
+                    <button className="btn" onClick={()=>navigate(PAGES.menu)}>Order This Now</button>
+                 </div>
               </div>
            </div>
         </div>
       </section>
 
-      {/* 3. BEST SELLERS */}
+      {/* 4. BEST SELLERS */}
       <section className="section">
         <div className="container">
           <div className="section-title">Best Sellers</div>
@@ -338,10 +344,10 @@ function Home({ navigate, onViewProduct }) {
         </div>
       </section>
 
-      {/* 4. CUSTOM ORDER BANNER (New Filler Section) */}
-      <section className="section" style={{ background: '#333', color: '#fff', padding: '60px 0', textAlign: 'center' }}>
+      {/* 5. CUSTOM ORDER BANNER */}
+      <section className="section" style={{ background: '#222', color: '#fff', padding: '60px 0', textAlign: 'center' }}>
         <div className="container">
-           <h2 style={{ fontSize: '2rem', marginBottom: '15px' }}>Planning a Special Occasion?</h2>
+           <h2 style={{ fontSize: '2rem', marginBottom: '15px', color: '#fff' }}>Planning a Special Occasion?</h2>
            <p style={{ maxWidth: '600px', margin: '0 auto 25px auto', color: '#ccc' }}>
               From weddings to birthdays, we create custom cakes that taste as good as they look. Let us make your day memorable.
            </p>
@@ -349,7 +355,7 @@ function Home({ navigate, onViewProduct }) {
         </div>
       </section>
 
-      {/* 5. QUICK BITES */}
+      {/* 6. QUICK BITES */}
       <section className="section">
         <div className="container">
           <div className="section-title">Quick Bites & Snacks</div>
@@ -363,35 +369,78 @@ function Home({ navigate, onViewProduct }) {
         </div>
       </section>
 
-      {/* 6. TESTIMONIALS (New Filler Section) */}
-      <section className="section" style={{ backgroundColor: '#fffbf2' }}>
+      {/* 7. TESTIMONIALS */}
+      <section className="section section-alt">
         <div className="container">
            <div className="section-title">Customer Love</div>
-           <div className="grid" style={{ gap: '20px' }}>
-              <div className="card p-3">
-                 <p style={{ fontStyle: 'italic', color: '#555' }}>"The Red Velvet cake was the highlight of our party! Absolutely moist and delicious."</p>
-                 <div style={{ marginTop: '15px', fontWeight: 'bold' }}>— Rahul S.</div>
+           <div className="testimonial-grid">
+              <div className="testimonial-card">
+                 <p className="testimonial-text">"The Red Velvet cake was the highlight of our party! Absolutely moist and delicious. Everyone asked where we got it from."</p>
+                 <div className="testimonial-author">
+                    <div className="author-avatar">R</div>
+                    <div className="author-info"><strong>Rahul Sharma</strong><span>Birthday Celebration</span></div>
+                 </div>
               </div>
-              <div className="card p-3">
-                 <p style={{ fontStyle: 'italic', color: '#555' }}>"Best momos in town. The chutney is spicy and authentic. Highly recommended!"</p>
-                 <div style={{ marginTop: '15px', fontWeight: 'bold' }}>— Anjali K.</div>
+              <div className="testimonial-card">
+                 <p className="testimonial-text">"Best momos in town. The chutney is spicy and authentic. I order from here almost every weekend. Highly recommended!"</p>
+                 <div className="testimonial-author">
+                    <div className="author-avatar">A</div>
+                    <div className="author-info"><strong>Anjali Kapoor</strong><span>Regular Customer</span></div>
+                 </div>
               </div>
-              <div className="card p-3">
-                 <p style={{ fontStyle: 'italic', color: '#555' }}>"Ordered a custom photo cake for my son. It was perfect. Thank you Corbett Bakers!"</p>
-                 <div style={{ marginTop: '15px', fontWeight: 'bold' }}>— Vikram R.</div>
+              <div className="testimonial-card">
+                 <p className="testimonial-text">"Ordered a custom photo cake for my son. It was perfect design-wise and tasted amazing. Thank you Corbett Bakers!"</p>
+                 <div className="testimonial-author">
+                    <div className="author-avatar">V</div>
+                    <div className="author-info"><strong>Vikram Singh</strong><span>Custom Order</span></div>
+                 </div>
               </div>
            </div>
         </div>
       </section>
 
-      {/* 7. GALLERY STRIP (New Visual Filler) */}
-      <section style={{ display: 'flex', overflow: 'hidden', height: '150px' }}>
-          {/* Just showing a few random images from the gallery array as a strip */}
-          {GALLERY_IMAGES.slice(0, 6).map((src, i) => (
-             <div key={i} style={{ flex: 1, minWidth: '150px' }}>
-                <img src={src} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e)=>e.target.src='https://placehold.co/300x300'} />
-             </div>
-          ))}
+      {/* 8. GLIMPSE FROM OUR SOCIAL WORLD (New Section) */}
+      <section className="social-section">
+         <div className="container social-header">
+            <h2 className="section-title" style={{ fontSize: '2.5rem' }}>A glimpse from our social world!</h2>
+            <p className="muted">Follow us @corbettbakers for daily cravings</p>
+         </div>
+
+         {/* Row 1: Left to Right (Slow) */}
+         <div className="social-track-wrapper">
+            <div className="social-track scroll-left slow">
+               {/* Doubling array for infinite loop */}
+               {[...SOCIAL_ROW_1, ...SOCIAL_ROW_1].map((item, i) => (
+                  <div key={i} className="glass-card">
+                     <img src={item.src} alt="Social" loading="lazy" onError={(e)=>e.target.src='https://placehold.co/200x300'} />
+                  </div>
+               ))}
+            </div>
+         </div>
+
+         {/* Row 2: Right to Left (Fast) */}
+         <div className="social-track-wrapper">
+            <div className="social-track scroll-right fast">
+               {[...SOCIAL_ROW_2, ...SOCIAL_ROW_2].map((item, i) => (
+                  <div key={i} className="glass-card">
+                     <img src={item.src} alt="Social" loading="lazy" onError={(e)=>e.target.src='https://placehold.co/200x300'} />
+                     {/* Fake Video Play Button */}
+                     {item.type === 'video' && <div className="play-icon"></div>}
+                  </div>
+               ))}
+            </div>
+         </div>
+
+         {/* Row 3: Left to Right (Normal) */}
+         <div className="social-track-wrapper">
+            <div className="social-track scroll-left">
+               {[...SOCIAL_ROW_3, ...SOCIAL_ROW_3].map((item, i) => (
+                  <div key={i} className="glass-card">
+                     <img src={item.src} alt="Social" loading="lazy" onError={(e)=>e.target.src='https://placehold.co/200x300'} />
+                  </div>
+               ))}
+            </div>
+         </div>
       </section>
     </main>
   )
@@ -658,31 +707,117 @@ function Admin() {
 }
 
 function Order({ cart }) {
-  const [form, setForm] = useState({ name:'', contact:'', date:'', items:'', notes:'' })
-  const WHATSAPP_NUMBER = '919999999999'
-  const onSubmit = (e)=> {
+  // CONFIG: Your Business Number
+  const OWNER_WHATSAPP_NUMBER = '918755953610'; 
+
+  const [form, setForm] = useState({ name: '', contact: '', date: '', items: '', notes: '' })
+
+  const cartTotal = cart.reduce((sum, item) => sum + item.price, 0);
+  const isCartOrder = cart.length > 0;
+
+  const onSubmit = (e) => {
     e.preventDefault()
-    const orderItems = form.items || cart.map(i=> `${i.name} (₹${i.price})`).join(', ')
-    const text = encodeURIComponent(`Order Request\nName: ${form.name}\nContact: ${form.contact}\nDate: ${form.date}\nItems: ${orderItems}\nNotes: ${form.notes}`)
-    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${text}`
-    window.open(url, '_blank')
+
+    let itemDetails = '';
+    let finalTotal = '';
+
+    if (isCartOrder) {
+        itemDetails = cart.map((i, index) => `${index + 1}. ${i.name} (₹${i.price})`).join('\n');
+        finalTotal = `*Total Amount:* ₹${cartTotal}`;
+    } else {
+        itemDetails = form.items || 'Custom Order';
+        finalTotal = 'Total to be confirmed.';
+    }
+
+    const message = `
+*🍰 New Order Request - Corbett Bakers*
+--------------------------------
+*Name:* ${form.name}
+*Contact:* ${form.contact}
+*Date Required:* ${form.date}
+
+*Order Details:*
+${itemDetails}
+
+${finalTotal}
+
+*Notes:* ${form.notes ? form.notes : 'None'}
+--------------------------------
+Please confirm this order.
+    `.trim();
+
+    const url = `https://wa.me/${OWNER_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+    window.open(url, '_blank');
   }
+
   return (
-    <main className="section"><div className="container">
-        <div className="section-title">Order</div>
-        <form onSubmit={onSubmit}>
-          <div className="form-row">
-            <input className="input" placeholder="Name" value={form.name} onChange={e=>setForm({...form, name:e.target.value})} required />
-            <input className="input" placeholder="Contact" value={form.contact} onChange={e=>setForm({...form, contact:e.target.value})} required />
-          </div>
-          <div className="form-row mt-2">
-            <input type="date" className="input" value={form.date} onChange={e=>setForm({...form, date:e.target.value})} required />
-            <input className="input" placeholder="Items (leave blank if using cart)" value={form.items} onChange={e=>setForm({...form, items:e.target.value})} />
-          </div>
-          <textarea className="input mt-2" placeholder="Notes" value={form.notes} onChange={e=>setForm({...form, notes:e.target.value})} />
-          <button className="btn mt-2">Send on WhatsApp</button>
-        </form>
-    </div></main>
+    <main className="section">
+      <div className="container">
+        <div className="section-title text-center" style={{ marginBottom: '2rem' }}>Finalize Your Order</div>
+        
+        <div className="order-card">
+            
+            {/* 1. STYLISH RECEIPT SUMMARY */}
+            {isCartOrder && (
+                <div className="order-summary">
+                    <div className="order-summary-header">
+                        <h4>Your Cart Receipt</h4>
+                        <span style={{ fontSize: '0.9rem', color: '#888' }}>{new Date().toLocaleDateString()}</span>
+                    </div>
+                    <ul className="order-list">
+                        {cart.map((item, i) => (
+                            <li key={i}>
+                                <span>{item.name}</span>
+                                <strong>₹{item.price}</strong>
+                            </li>
+                        ))}
+                    </ul>
+                    <div className="order-divider">
+                        <span className="total-label">Grand Total</span>
+                        <span className="total-highlight">₹{cartTotal}</span>
+                    </div>
+                </div>
+            )}
+
+            {/* 2. ALIGNED FORM */}
+            <form onSubmit={onSubmit}>
+                <div className="form-row">
+                    <div className="form-group">
+                        <label>Your Name</label>
+                        <input className="input" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required placeholder="e.g. Rahul Singh" />
+                    </div>
+                    <div className="form-group">
+                        <label>Contact Number</label>
+                        <input type="tel" className="input" value={form.contact} onChange={e => setForm({ ...form, contact: e.target.value })} required placeholder="e.g. 98765 43210" />
+                    </div>
+                </div>
+                
+                <div className="form-row">
+                    <div className="form-group">
+                        <label>Pickup / Delivery Date</label>
+                        <input type="date" className="input" value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} required />
+                    </div>
+                    
+                    {!isCartOrder && (
+                        <div className="form-group">
+                            <label>Items Required</label>
+                            <input className="input" value={form.items} onChange={e => setForm({ ...form, items: e.target.value })} placeholder="e.g. 1kg Truffle Cake" />
+                        </div>
+                    )}
+                </div>
+
+                <div className="form-group">
+                    <label>Special Instructions / Message</label>
+                    <textarea rows={3} className="input" value={form.notes} onChange={e => setForm({ ...form, notes: e.target.value })} placeholder="e.g. Write 'Happy Birthday' on the cake in red cream..." />
+                </div>
+
+                <button className="btn btn-whatsapp mt-4" type="submit">
+                    <span style={{ fontSize: '1.4rem' }}>👉</span> Place Order on WhatsApp
+                </button>
+            </form>
+        </div>
+      </div>
+    </main>
   )
 }
 
@@ -703,7 +838,7 @@ function Contact() {
   return (
     <main className="section"><div className="container">
         <div className="section-title">Contact Us</div>
-        <p>📍 Bannakhera, Uttarakhand <br/> ☎️ +91 99999 99999</p>
+        <p>📍 Bannakhera, Uttarakhand <br/> ☎️ +91 8433138312</p>
         <div className="hero-card mt-3">
             <iframe title="Map" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3431.8829893200686!2d79.126!3d29.397!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2sRamnagar!5e0!3m2!1sen!2sin!4v1700000000000" width="100%" height="320" style={{ border: 0 }} allowFullScreen="" loading="lazy"></iframe>
         </div>
@@ -738,7 +873,6 @@ function App() {
       {page===PAGES.order && <Order cart={cart} />}
       {page===PAGES.about && <About />}
       {page===PAGES.contact && <Contact />}
-      {page===PAGES.gallery && <Gallery />}
       {page===PAGES.admin && <Admin />}
       
       {/* Product Details Modal */}
@@ -771,7 +905,7 @@ function App() {
 
       {toast && <div style={{position:'fixed', bottom:'20px', left:'50%', transform:'translateX(-50%)', background:'#333', color:'#fff', padding:'10px 20px', borderRadius:'20px', zIndex:4000}}>{toast}</div>}
       
-      <a className="fab" href="https://wa.me/919999999999" target="_blank" rel="noreferrer">Chat</a>
+      <a className="fab" href="https://wa.me/8433138312" target="_blank" rel="noreferrer">Chat</a>
       <Footer />
     </>
   )
