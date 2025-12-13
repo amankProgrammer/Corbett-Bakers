@@ -221,7 +221,7 @@ const fastFoodItems = [
 // API-based data fetching
 async function fetchProductsFromAPI() {
   try {
-    const response = await fetch(`${API_URL}/products`)
+    const response = await fetch(`${API_URL}/api/products`)
     if (!response.ok) throw new Error('Failed to fetch products')
     return await response.json()
   } catch (err) {
@@ -232,7 +232,7 @@ async function fetchProductsFromAPI() {
 
 async function fetchFastFoodFromAPI() {
   try {
-    const response = await fetch(`${API_URL}/fastfood`)
+    const response = await fetch(`${API_URL}/api/fastfood`)
     if (!response.ok) throw new Error('Failed to fetch fast food items')
     return await response.json()
   } catch (err) {
@@ -600,7 +600,7 @@ function AdminLogin({ onLogin }) {
     setLoading(true)
     setError('')
     try {
-      const response = await fetch(`${API_URL}/admin/login`, {
+      const response = await fetch(`${API_URL}/api/admin/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
@@ -661,7 +661,7 @@ function AdminDashboard() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch(`${API_URL}/products`)
+      const response = await fetch(`${API_URL}/api/products`)
       const data = await response.json()
       setProdList(data || [])
     } catch (err) {
@@ -674,7 +674,7 @@ function AdminDashboard() {
 
   const fetchFastFood = async () => {
     try {
-      const response = await fetch(`${API_URL}/fastfood`)
+      const response = await fetch(`${API_URL}/api/fastfood`)
       const data = await response.json()
       setFfList(data || [])
     } catch (err) {
@@ -703,7 +703,7 @@ function AdminDashboard() {
     try {
       setLoading(true)
       const id = editing || ('p' + Date.now())
-      const url = editing ? `${API_URL}/products/${id}` : `${API_URL}/products`
+      const url = editing ? `${API_URL}/api/products/${id}` : `${API_URL}/api/products`
       const method = editing ? 'PUT' : 'POST'
 
       const response = await fetch(url, {
@@ -735,7 +735,7 @@ function AdminDashboard() {
     if (!window.confirm('Are you sure?')) return
     try {
       setLoading(true)
-      const response = await fetch(`${API_URL}/products/${id}`, { method: 'DELETE' })
+      const response = await fetch(`${API_URL}/api/products/${id}`, { method: 'DELETE' })
       if (!response.ok) throw new Error('Failed to delete')
       setMessage('Product deleted successfully')
       await fetchProducts()
@@ -755,7 +755,7 @@ function AdminDashboard() {
     try {
       setLoading(true)
       const id = editing || ('ff' + Date.now())
-      const url = editing ? `${API_URL}/fastfood/${id}` : `${API_URL}/fastfood`
+      const url = editing ? `${API_URL}/api/fastfood/${id}` : `${API_URL}/api/fastfood`
       const method = editing ? 'PUT' : 'POST'
 
       const response = await fetch(url, {
@@ -789,7 +789,7 @@ function AdminDashboard() {
     if (!window.confirm('Are you sure?')) return
     try {
       setLoading(true)
-      const response = await fetch(`${API_URL}/fastfood/${id}`, { method: 'DELETE' })
+      const response = await fetch(`${API_URL}/api/fastfood/${id}`, { method: 'DELETE' })
       if (!response.ok) throw new Error('Failed to delete')
       setMessage('Item deleted successfully')
       await fetchFastFood()
