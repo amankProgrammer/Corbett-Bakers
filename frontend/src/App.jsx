@@ -278,11 +278,12 @@ function Home({ navigate, onViewProduct }) {
 
   return (
     <main>
+      {/* 1. HERO SECTION */}
       <section className="hero">
         <div className="container hero-inner">
           <div>
-            <h1>Baked with Love</h1>
-            <p>Warm, cozy, and inviting bakes for every sweet moment.</p>
+            <h1>Baked with Love, Served Fresh</h1>
+            <p>Warm, cozy, and inviting bakes for every sweet moment. From cakes to cookies, we craft homemade happiness daily.</p>
             <div className="hero-actions">
               <button className="btn" onClick={()=>navigate(PAGES.order)}>Order Now</button>
               <button className="btn outline" onClick={()=>navigate(PAGES.menu)}>View Menu</button>
@@ -303,32 +304,94 @@ function Home({ navigate, onViewProduct }) {
         </div>
       </section>
 
+      {/* 2. WHY CHOOSE US (New Filler Section) */}
+      <section className="section" style={{ backgroundColor: '#fffbf2' }}>
+        <div className="container">
+           <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', textAlign: 'center', gap: '30px' }}>
+              <div style={{ padding: '20px' }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🌿</div>
+                  <h3 style={{ marginBottom: '10px', color: '#6b4f3b' }}>100% Fresh</h3>
+                  <p className="small">We use only the finest, fresh ingredients. No preservatives, just pure taste.</p>
+              </div>
+              <div style={{ padding: '20px' }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>👨‍🍳</div>
+                  <h3 style={{ marginBottom: '10px', color: '#6b4f3b' }}>Master Chefs</h3>
+                  <p className="small">Baked by experts with years of experience in crafting the perfect sponge.</p>
+              </div>
+              <div style={{ padding: '20px' }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '10px' }}>🚚</div>
+                  <h3 style={{ marginBottom: '10px', color: '#6b4f3b' }}>Fast Delivery</h3>
+                  <p className="small">Craving something sweet? We deliver straight to your doorstep in minutes.</p>
+              </div>
+           </div>
+        </div>
+      </section>
+
+      {/* 3. BEST SELLERS */}
       <section className="section">
         <div className="container">
           <div className="section-title">Best Sellers</div>
-          {loading && <div className="text-center">Loading...</div>}
+          {loading && <div className="text-center">Loading fresh bakes...</div>}
           <div className="grid">
             {!loading && products.slice(0,4).map((p)=> <ProductCard key={p.id} item={p} onView={onViewProduct} />)}
           </div>
         </div>
       </section>
 
-      <section className="section accent">
+      {/* 4. CUSTOM ORDER BANNER (New Filler Section) */}
+      <section className="section" style={{ background: '#333', color: '#fff', padding: '60px 0', textAlign: 'center' }}>
         <div className="container">
-          <div className="section-title">Birthday Specials</div>
+           <h2 style={{ fontSize: '2rem', marginBottom: '15px' }}>Planning a Special Occasion?</h2>
+           <p style={{ maxWidth: '600px', margin: '0 auto 25px auto', color: '#ccc' }}>
+              From weddings to birthdays, we create custom cakes that taste as good as they look. Let us make your day memorable.
+           </p>
+           <button className="btn" style={{ background: '#fff', color: '#333' }} onClick={()=>navigate(PAGES.contact)}>Request Custom Order</button>
+        </div>
+      </section>
+
+      {/* 5. QUICK BITES */}
+      <section className="section">
+        <div className="container">
+          <div className="section-title">Quick Bites & Snacks</div>
+          <p className="muted" style={{marginTop:'-8px', marginBottom: '20px'}}>Perfect for tea time, office breaks, or anytime cravings.</p>
           <div className="grid">
-            {!loading && products.filter(p=> p.category==='Birthday').slice(0, 4).map((p)=> <ProductCard key={p.id} item={p} onView={onViewProduct} />)}
+            {!loading && fastFood.slice(0, 8).map((ff)=> <FastFoodCard key={ff.id} item={ff} onView={onViewProduct} />)}
+          </div>
+          <div className="mt-3 text-center">
+             <button className="btn outline" onClick={()=>navigate(PAGES.menu)}>View Full Menu</button>
           </div>
         </div>
       </section>
 
-      <section className="section">
+      {/* 6. TESTIMONIALS (New Filler Section) */}
+      <section className="section" style={{ backgroundColor: '#fffbf2' }}>
         <div className="container">
-          <div className="section-title">Quick Bites</div>
-          <div className="grid">
-            {!loading && fastFood.slice(0, 8).map((ff)=> <FastFoodCard key={ff.id} item={ff} onView={onViewProduct} />)}
-          </div>
+           <div className="section-title">Customer Love</div>
+           <div className="grid" style={{ gap: '20px' }}>
+              <div className="card p-3">
+                 <p style={{ fontStyle: 'italic', color: '#555' }}>"The Red Velvet cake was the highlight of our party! Absolutely moist and delicious."</p>
+                 <div style={{ marginTop: '15px', fontWeight: 'bold' }}>— Rahul S.</div>
+              </div>
+              <div className="card p-3">
+                 <p style={{ fontStyle: 'italic', color: '#555' }}>"Best momos in town. The chutney is spicy and authentic. Highly recommended!"</p>
+                 <div style={{ marginTop: '15px', fontWeight: 'bold' }}>— Anjali K.</div>
+              </div>
+              <div className="card p-3">
+                 <p style={{ fontStyle: 'italic', color: '#555' }}>"Ordered a custom photo cake for my son. It was perfect. Thank you Corbett Bakers!"</p>
+                 <div style={{ marginTop: '15px', fontWeight: 'bold' }}>— Vikram R.</div>
+              </div>
+           </div>
         </div>
+      </section>
+
+      {/* 7. GALLERY STRIP (New Visual Filler) */}
+      <section style={{ display: 'flex', overflow: 'hidden', height: '150px' }}>
+          {/* Just showing a few random images from the gallery array as a strip */}
+          {GALLERY_IMAGES.slice(0, 6).map((src, i) => (
+             <div key={i} style={{ flex: 1, minWidth: '150px' }}>
+                <img src={src} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e)=>e.target.src='https://placehold.co/300x300'} />
+             </div>
+          ))}
       </section>
     </main>
   )
