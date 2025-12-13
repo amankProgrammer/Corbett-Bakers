@@ -99,23 +99,51 @@ function useHashRoute(defaultPage = PAGES.home) {
 }
 
 function Header({ navigate, page, toggleDark, cartCount, onOpenCart, config }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const handleNavClick = (pageName) => {
+    navigate(pageName);
+    setMenuOpen(false); // Close menu on click
+  };
+
   return (
     <header className="header">
       <div className="container header-inner">
-        <div className="brand" onClick={() => navigate(PAGES.home)} style={{ cursor: 'pointer' }}>
+        {/* Brand */}
+        <div className="brand" onClick={() => handleNavClick(PAGES.home)} style={{ cursor: 'pointer' }}>
           <div className="brand-row">
             <svg className="brand-icon" viewBox="0 0 24 24" fill="none"><path d="M4 14c0-3 4-4 8-4s8 1 8 4-4 6-8 6-8-3-8-6Z" fill="#D7A86E"/><path d="M12 4c2 0 3 1 3 2s-1 2-3 2-3-1-3-2 1-2 3-2Z" fill="#F18FB0"/><circle cx="16.5" cy="9.5" r="1.2" fill="#F7C7D8"/><circle cx="9" cy="9" r="1" fill="#F7C7D8"/></svg>
             <div>{config.shopName}<small>{config.tagline}</small></div>
           </div>
         </div>
-        <nav className="nav">
-          <a href="#/home" onClick={(e)=>{e.preventDefault();navigate(PAGES.home)}} aria-current={page===PAGES.home}>Home</a>
-          <a href="#/menu" onClick={(e)=>{e.preventDefault();navigate(PAGES.menu)}}>Menu</a>
-          <a href="#/order" onClick={(e)=>{e.preventDefault();navigate(PAGES.order)}}>Order</a>
-          <a href="#/contact" onClick={(e)=>{e.preventDefault();navigate(PAGES.contact)}}>Contact</a>
-          <button className="btn outline" onClick={toggleDark} title="Toggle Theme">Theme</button>
-          <button className="btn outline" onClick={onOpenCart} title="View cart">Cart ({cartCount})</button>
-          <a className="btn" href="#/order" onClick={(e)=>{e.preventDefault();navigate(PAGES.order)}}>Order Now</a>
+
+        {/* Mobile Toggle Button */}
+        <button 
+          className="mobile-toggle" 
+          onClick={() => setMenuOpen(!menuOpen)}
+          aria-label="Toggle menu"
+        >
+          {menuOpen ? '✕' : '☰'}
+        </button>
+
+        {/* Navigation Links */}
+        <nav className={`nav ${menuOpen ? 'open' : ''}`}>
+          <a href="#/home" onClick={(e)=>{e.preventDefault(); handleNavClick(PAGES.home)}} aria-current={page===PAGES.home}>Home</a>
+          <a href="#/menu" onClick={(e)=>{e.preventDefault(); handleNavClick(PAGES.menu)}} aria-current={page===PAGES.menu}>Menu</a>
+          <a href="#/order" onClick={(e)=>{e.preventDefault(); handleNavClick(PAGES.order)}} aria-current={page===PAGES.order}>Order</a>
+          <a href="#/about" onClick={(e)=>{e.preventDefault(); handleNavClick(PAGES.about)}} aria-current={page===PAGES.about}>About</a>
+          <a href="#/contact" onClick={(e)=>{e.preventDefault(); handleNavClick(PAGES.contact)}} aria-current={page===PAGES.contact}>Contact</a>
+          
+          <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
+            <button className="btn outline" onClick={() => { toggleDark(); setMenuOpen(false); }}>
+               Theme
+            </button>
+            <button className="btn outline" onClick={() => { onOpenCart(); setMenuOpen(false); }}>
+               Cart ({cartCount})
+            </button>
+          </div>
+          
+          <a className="btn" href="#/order" onClick={(e)=>{e.preventDefault(); handleNavClick(PAGES.order)}}>Order Now</a>
         </nav>
       </div>
     </header>
@@ -188,10 +216,30 @@ function Home({ navigate, onViewProduct, config }) {
   const [products, setProducts] = useState([])
   const [fastFood, setFastFood] = useState([])
   const [loading, setLoading] = useState(true)
-  const slides = useMemo(() => [ { src: '/images/shop.jpg' }, { src: '/images/signature_cake.jpg' }, { src: '/images/pastry.jpg' } ], [])
+
+  // 1. UPDATED SLIDES DATA WITH TEXT
+  const slides = useMemo(() => [
+    { 
+      src: '/images/shop.jpg', 
+      title: 'Welcome to Corbett Bakers', 
+      subtitle: 'Where every crumb tells a story' 
+    },
+    { 
+      src: '/images/signature_cake.jpg', 
+      title: 'Signature Choco Truffle', 
+      subtitle: 'Rich, dark, and decadent' 
+    },
+    { 
+      src: '/images/pastry.jpg', 
+      title: 'Fresh Fruit Pastries', 
+      subtitle: 'Baked fresh every morning' 
+    },
+  ], [])
+  
   const [index, setIndex] = useState(0)
   
-  useEffect(() => { const t = setInterval(()=> setIndex((i)=> (i+1)%slides.length), 3500); return ()=> clearInterval(t) }, [slides.length])
+  useEffect(() => { const t = setInterval(()=> setIndex((i)=> (i+1)%slides.length), 4000); return ()=> clearInterval(t) }, [slides.length])
+  
   useEffect(() => {
     const loadData = async () => {
       setLoading(true)
@@ -214,15 +262,37 @@ function Home({ navigate, onViewProduct, config }) {
               <button className="btn outline" onClick={()=>navigate(PAGES.menu)}>View Menu</button>
             </div>
           </div>
-          <div className="carousel" style={{ position: 'relative', overflow: 'hidden', width: '100%', height: '400px', borderRadius: '16px' }}>
-              <div className="carousel-track" style={{ display: 'flex', height: '100%', transition: 'transform 0.5s ease-in-out', transform: `translateX(-${index*100}%)` }}>
+          
+          <div className="carousel" style={{ position: 'relative', overflow: 'hidden', width: '100%', height: '400px', borderRadius: '24px' }}>
+              <div className="carousel-track" style={{ display: 'flex', height: '100%', transition: 'transform 0.6s cubic-bezier(0.25, 1, 0.5, 1)', transform: `translateX(-${index*100}%)` }}>
                 {slides.map((s, i)=> (
                   <div className="carousel-slide" key={i} style={{ minWidth: '100%', height: '100%' }}>
                     <div className="hero-card" style={{ width: '100%', height: '100%' }}>
-                      <img src={s.src} style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={(e)=>e.target.src='https://placehold.co/800x400?text=Corbett+Bakers'} />
+                      <img 
+                        src={s.src} 
+                        alt={s.title} 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
+                        onError={(e)=>e.target.src='https://placehold.co/800x400?text=Corbett+Bakers'} 
+                      />
+                      
+                      {/* 2. NEW TEXT OVERLAY */}
+                      <div className="hero-overlay">
+                        <div className="hero-text-content">
+                           <h3>{s.title}</h3>
+                           <span>{s.subtitle}</span>
+                        </div>
+                      </div>
+
                     </div>
                   </div>
                 ))}
+              </div>
+              
+              {/* Optional: Slide Indicators */}
+              <div className="carousel-nav">
+                 {slides.map((_, i) => (
+                    <div key={i} className={`dot ${i===index ? 'active' : ''}`} onClick={()=>setIndex(i)} />
+                 ))}
               </div>
           </div>
         </div>
