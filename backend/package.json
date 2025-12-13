@@ -1,7 +1,7 @@
 {
-  "name": "corbett-bakers-backend",
+  "name": "corbett-bakers-server",
   "version": "1.0.0",
-  "description": "Backend API for Corbett Bakers",
+  "description": "Backend for Corbett Bakers Admin Panel",
   "main": "server.js",
   "type": "module",
   "scripts": {
