@@ -450,7 +450,15 @@ function AdminDashboard({ config, onUpdateConfig }) {
   const saveItem = async () => {
       setLoading(true); const id = form.id || (tab==='products'?'p':'ff')+Date.now();
       const body = { ...form, id, price: Number(form.price), prices: form.prices };
-      await fetch(`${API_URL}/api/${tab}/${id}`, { method: form.id?'PUT':'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+      const url = form.id 
+        ? `${API_URL}/api/${tab}/${id}` 
+        : `${API_URL}/api/${tab}`;
+
+      await fetch(url, { 
+          method: form.id ? 'PUT' : 'POST', 
+          headers:{'Content-Type':'application/json'}, 
+          body:JSON.stringify(body) 
+      });
       setForm({}); loadItems(); setLoading(false);
   }
   const deleteItem = async (id) => { if(confirm('Delete?')) await fetch(`${API_URL}/api/${tab}/${id}`, {method:'DELETE'}); loadItems(); }
