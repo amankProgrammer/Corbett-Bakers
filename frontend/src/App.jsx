@@ -231,7 +231,7 @@ function Home({ navigate, onViewProduct, config }) {
     },
     { 
       src: '/images/pastry.jpg', 
-      title: 'Fresh Fruit Pastries', 
+      title: 'Fresh Strawberry Pastries', 
       subtitle: 'Baked fresh every morning' 
     },
   ], [])
@@ -248,6 +248,9 @@ function Home({ navigate, onViewProduct, config }) {
     }
     loadData()
   }, [])
+
+  // This remembers the random order so it doesn't change on every render
+  const randomFastFood = useMemo(() => [...fastFood].sort(() => 0.5 - Math.random()).slice(0, 4), [fastFood]);
 
   return (
     <main>
@@ -320,7 +323,7 @@ function Home({ navigate, onViewProduct, config }) {
            <div className="spotlight-wrapper">
               <div className="spotlight-image">
                  <img 
-                    src={config.chefImage || "/images/cake_2.jpg"} 
+                    src={config.chefImage || "/images/cake_9.jpg"} 
                     alt="Spotlight" 
                     loading="lazy" 
                     onError={(e) => e.target.src = 'https://images.unsplash.com/photo-1586788680434-30d3244363c3?auto=format&fit=crop&w=1000&q=80'} 
@@ -365,7 +368,7 @@ function Home({ navigate, onViewProduct, config }) {
           <div className="section-title">Quick Bites & Snacks</div>
           <p className="muted" style={{marginTop:'-8px', marginBottom: '20px'}}>Perfect for tea time, office breaks, or anytime cravings.</p>
           <div className="grid">
-            {!loading && fastFood.slice(0, 8).map((ff)=> <FastFoodCard key={ff.id} item={ff} onView={onViewProduct} />)}
+              {!loading && randomFastFood.map((ff) => <FastFoodCard key={ff.id} item={ff} onView={onViewProduct} />)}
           </div>
           <div className="mt-3 text-center">
              <button className="btn outline" onClick={()=>navigate(PAGES.menu)}>View Full Menu</button>
@@ -413,27 +416,147 @@ function Menu({ onViewProduct, onAdd }) {
   const [fastFood, setFastFood] = useState([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
-  const [filterCategory, setFilterCategory] = useState('All')
+  const [activeCategory, setActiveCategory] = useState('All')
 
-  useEffect(() => { const load = async () => { setLoading(true); const [p, f] = await Promise.all([fetchProductsFromAPI(), fetchFastFoodFromAPI()]); setProducts(p); setFastFood(f); setLoading(false) }; load() }, [])
-  const allCategories = useMemo(() => ['All', ...new Set([...products.map(p=>p.category), ...fastFood.map(f=>f.category)])], [products, fastFood])
-  const filteredProducts = products.filter(p => (filterCategory==='All' || p.category===filterCategory) && p.name.toLowerCase().includes(searchTerm.toLowerCase()))
-  const filteredFastFood = fastFood.filter(f => (filterCategory==='All' || f.category===filterCategory) && f.name.toLowerCase().includes(searchTerm.toLowerCase()))
+  useEffect(() => {
+    const load = async () => {
+      setLoading(true);
+      const [p, f] = await Promise.all([fetchProductsFromAPI(), fetchFastFoodFromAPI()]);
+      setProducts(p);
+      setFastFood(f);
+      setLoading(false)
+    }
+    load()
+  }, [])
+
+  const categories = useMemo(() => {
+    const allItems = [...products, ...fastFood];
+    const uniqueCats = ['All', ...new Set(allItems.map(item => item.category))];
+    return uniqueCats.sort(); 
+  }, [products, fastFood]);
+
+  const allItems = [...products, ...fastFood];
+  const filteredItems = allItems.filter(item => {
+    const matchesSearch = item.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = activeCategory === 'All' || item.category === activeCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  // Use all fast food items for the card
+  const specialItems = fastFood;
 
   return (
-    <main className="section menu-page"><div className="container">
-        <div className="menu-header"><div className="section-title fancy-title neon-title">Our Menu</div></div>
-        <div className="menu-filters mb-3 flex gap-2" style={{ alignItems: 'flex-end' }}>
-            <div style={{flex:1}}><label>Search</label><input className="input" placeholder="Search..." value={searchTerm} onChange={e=>setSearchTerm(e.target.value)} /></div>
-            <div style={{flex:1}}><label>Category</label><select className="input" value={filterCategory} onChange={e=>setFilterCategory(e.target.value)}>{allCategories.map(c=><option key={c} value={c}>{c}</option>)}</select></div>
+    <main style={{ minHeight: '100vh' }}>
+      
+      {/* 1. MENU HERO */}
+      <section className="menu-hero">
+        <div className="container">
+           <div className="section-title fancy-title" style={{ marginBottom: '0.5rem' }}>Our Menu</div>
+           <p className="muted">Fresh from the oven, straight to your heart.</p>
         </div>
-        {loading && <div className="text-center">Loading menu...</div>}
-        {!loading && <div className="grid">
-            {filteredProducts.map(p => <ProductCard key={p.id} item={p} onView={onViewProduct} />)}
-            {filteredFastFood.map(f => <FastFoodCard key={f.id} item={f} onView={onViewProduct} />)}
-            {filteredProducts.length===0 && filteredFastFood.length===0 && <div style={{gridColumn:'1/-1', textAlign:'center'}}>No items found.</div>}
-        </div>}
-    </div></main>
+      </section>
+
+      {/* 2. THE COMPACT PHYSICAL MENU CARD */}
+      {!loading && specialItems.length > 0 && (
+        <section className="physical-menu-section">
+            <div className="physical-menu-card">
+                <div className="pm-header">
+                    <h2 className="pm-title">Cafe Menu</h2>
+                    <div className="pm-subtitle">Fast Food Delights</div>
+                </div>
+                
+                <ul className="pm-list">
+                    {specialItems.map((item, i) => {
+                        // LOGIC: Determine how to show price
+                        let priceDisplay = '';
+                        const isBurger = item.category.toLowerCase().includes('burger');
+                        
+                        if (isBurger) {
+                            // If Burger, only show one price (Full prefered, else standard)
+                            priceDisplay = `₹${item.prices?.full || item.price}`;
+                        } 
+                        else if (item.prices?.half && item.prices?.full) {
+                            // If both Half and Full exist, show both
+                            priceDisplay = `H: ₹${item.prices.half} | F: ₹${item.prices.full}`;
+                        } 
+                        else {
+                            // Fallback for single price items
+                            priceDisplay = `₹${item.prices?.full || item.prices?.half || item.price}`;
+                        }
+
+                        return (
+                            <li key={i}>
+                                <div className="pm-item">
+                                    <span className="pm-name">{item.name}</span>
+                                    <span className="pm-dots"></span>
+                                    <span className="pm-price">{priceDisplay}</span>
+                                </div>
+                            </li>
+                        );
+                    })}
+                </ul>
+
+                <div style={{ textAlign: 'center', marginTop: '1.5rem', borderTop:'1px solid rgba(0,0,0,0.1)', paddingTop:'10px', fontSize: '0.8rem', opacity: 0.6, fontStyle:'italic' }}>
+                    * Customization available on request
+                </div>
+            </div>
+        </section>
+      )}
+
+      {/* 3. SEARCH & FILTER */}
+      <div className="search-wrapper" style={{ marginTop: '-25px', position: 'relative', zIndex: 10, padding: '0 1rem' }}>
+          <span className="search-icon">🔍</span>
+          <input 
+            className="search-input" 
+            placeholder="Search full menu..." 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+      </div>
+
+      {/* 4. CATEGORY PILLS */}
+      <div className="category-strip-wrapper">
+         <div className="container">
+            <div className="category-track">
+               {categories.map(cat => (
+                 <div 
+                   key={cat} 
+                   className={`category-pill ${activeCategory === cat ? 'active' : ''}`}
+                   onClick={() => setActiveCategory(cat)}
+                 >
+                   {cat}
+                 </div>
+               ))}
+            </div>
+         </div>
+      </div>
+
+      {/* 5. FOOD GRID */}
+      <div className="container section" style={{ paddingTop: '0' }}>
+        {loading && <div className="text-center muted" style={{ marginTop: '2rem' }}>Loading menu...</div>}
+
+        {!loading && (
+          <>
+            {filteredItems.length === 0 ? (
+               <div className="text-center" style={{ padding: '4rem 0', opacity: 0.7 }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🥖</div>
+                  <h3>No items found</h3>
+                  <button className="btn outline mt-2" onClick={()=>{setSearchTerm(''); setActiveCategory('All')}}>Clear Filters</button>
+               </div>
+            ) : (
+               <div className="grid">
+                  {filteredItems.map(item => {
+                     const isProduct = item.price !== undefined;
+                     return isProduct 
+                        ? <ProductCard key={item.id} item={item} onView={onViewProduct} />
+                        : <FastFoodCard key={item.id} item={item} onView={onViewProduct} />
+                  })}
+               </div>
+            )}
+          </>
+        )}
+      </div>
+    </main>
   )
 }
 
