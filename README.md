@@ -11,7 +11,6 @@ corbett-bakers/
 │   ├── public/                 # Static assets
 │   ├── index.html              # Entry HTML
 │   ├── vite.config.js          # Vite configuration
-│   ├── vercel.json             # Vercel deployment config
 │   ├── .vercelignore           # Vercel ignore patterns
 │   └── package.json            # Frontend dependencies
 │
@@ -20,16 +19,17 @@ corbett-bakers/
 │   ├── routes/                 # API routes
 │   │   ├── products.js         # Products endpoint
 │   │   └── fastfood.js         # Fastfood endpoint
-│   ├── db/                     # Database
-│   │   └── init.js             # Database initialization
+|   |   |__ config.js           # Configuration endpoint
+|   |   
+│   ├── models/                 # Database tables
+│   │   └── FastFood.js  
+|   |   |__ Product.js
+|   |   |__ SiteConfig.js
+|   |       
 │   ├── render.yaml             # Render deployment config
 │   ├── .renderignore           # Render ignore patterns
 │   └── package.json            # Backend dependencies
 │
-├── docs/                        # Documentation
-│   ├── SPLIT_DEPLOYMENT_GUIDE.md
-│   ├── VERCEL_DEPLOYMENT.md
-│   └── More guides...
 │
 ├── package.json                # Root monorepo config
 ├── .gitignore                  # Git ignore rules
@@ -40,7 +40,7 @@ corbett-bakers/
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                 Your Users                          │
+│                 Users                               │
 └────────────┬──────────────────────────┬─────────────┘
              │                          │
              ▼                          ▼
@@ -64,77 +64,32 @@ corbett-bakers/
 ### Local Development
 
 **1. Install Dependencies**
-```bash
+```
 npm install
 ```
 
 **2. Run Frontend**
-```bash
+```
 npm run frontend:dev
 ```
 Opens at `http://localhost:5173`
 
 **3. Run Backend**
-```bash
+```
 npm run backend:dev
 ```
 Runs at `http://localhost:5000`
 
 **4. Run Both Together**
-```bash
+```
 npm run dev
 ```
 
-## 📦 Production Deployment
 
-### Step 1: Push to GitHub
-```bash
-git add .
-git commit -m "Ready for deployment"
-git push origin main
-```
-
-### Step 2: Deploy Frontend to Vercel
-
-1. Go to [vercel.com](https://vercel.com)
-2. Create new project
-3. Select your repository
-4. **Important:** Set root directory to `frontend`
-5. Add environment variable:
-   - Name: `VITE_API_URL`
-   - Value: (Get after deploying backend)
-6. Click Deploy
-
-**Get your URL:** e.g., `https://corbett-bakers.vercel.app`
-
-### Step 3: Deploy Backend to Render
-
-1. Go to [render.com](https://render.com)
-2. Create Web Service
-3. Select your repository
-4. **Important:** Set root directory to `backend`
-5. Configure:
-   - Build: `npm install`
-   - Start: `npm start`
-   - Plan: Free
-6. Click Create
-
-**Get your URL:** e.g., `https://corbett-bakers-api.onrender.com`
-
-### Step 4: Update Vercel Environment Variable
-
-1. Go back to Vercel → Settings → Environment Variables
-2. Update `VITE_API_URL`:
-   ```
-   https://corbett-bakers-api.onrender.com
-   ```
-3. Redeploy
-
-### Total Deployment Time: ~15 minutes ⏱️
 
 ## ✅ Verification
 
-**Frontend:** Visit `https://your-app.vercel.app`
+**Frontend:** Visit 'https://corbett-bakers.vercel.app`
 - Page loads completely
 - Dark mode works
 - No console errors
@@ -156,22 +111,6 @@ git push origin main
 | `npm run frontend:build` | Build frontend |
 | `git push origin main` | Auto-deploy to Vercel |
 
-## 🌐 Live URLs After Deployment
-
-```
-Frontend:  https://your-app.vercel.app
-Backend:   https://corbett-api.onrender.com
-API:       https://corbett-api.onrender.com/api
-Products:  https://corbett-api.onrender.com/api/products
-Health:    https://corbett-api.onrender.com/api/health
-```
-
-## 📖 Detailed Documentation
-
-See `/docs` folder for:
-- `SPLIT_DEPLOYMENT_GUIDE.md` - Complete deployment guide
-- `VERCEL_DEPLOYMENT.md` - Vercel specifics
-- And more deployment resources
 
 ## 🎨 Features
 
@@ -180,7 +119,7 @@ See `/docs` folder for:
 ✅ Smooth animations  
 ✅ Mobile responsive  
 ✅ Express.js API  
-✅ SQLite database  
+✅ MongoDB database  
 ✅ Admin authentication  
 ✅ Auto-deploy on git push  
 
@@ -200,7 +139,3 @@ See `/docs` folder for:
 - **Last Updated:** December 12, 2025
 
 ---
-
-**Start deploying:** Read `/docs/SPLIT_DEPLOYMENT_GUIDE.md`
-
-
